@@ -1,28 +1,55 @@
-void genStar(void*(*codeTache)(void*)){
+struct nodeType
+{
+    nodeType *left;
+    nodeType *right;
+    char class[10];
+};
 
+nodeType * genConc(nodeType * p1, nodeType * p2){
+	nodeType node;
+	node.left = p1;
+	node.right = p2;
+	node.class = "conc";
+	return (&node);
 }
 
-void genUn(void*(*codeTache)(void*)){
-
+nodeType * genUnion(nodeType * p1, nodeType * p2){
+	nodeType node;
+	node.left = p1;
+	node.right = p2;
+	node.class = "union";
+	return (&node);
 }
 
-void genAtom(void*(*codeTache)(void*)){
-
+nodeType * genStar(nodeType * p1){
+	nodeType node;
+	node.left = p1;
+	node.class = "star";
+	return (&node);
 }
 
-void genUnion(void*(*codeTache)(void*)){
-
+nodeType * genUn(nodeType * p1){
+	nodeType node;
+	node.left = p1;
+	node.class = "un";
+	return (&node);
 }
 
-void genForet(void*(*codeTache)(void*)){
-
+nodeType * genAtom(){
+	nodeType node;
+	return (&node)
 }
 
-void ImprimArbre(void*(*codeTache)(void*)){
+nodeType ** genForet(){
+	nodeType * foret[5];
+	return foret;
+}
 
+void ImprimArbre(nodeType *root, int prof = 1){
+	
 }
 
 int main(){
-
+	
 	return 0;
 }
