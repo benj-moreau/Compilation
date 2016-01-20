@@ -6,14 +6,14 @@ struct nodeType
 {
     nodeType *left;
     nodeType *right;
-    char class[5];
+    char name[5];
 };
 
 nodeType * genConc(nodeType * p1, nodeType * p2){
 	nodeType * node;
 	node->left = p1;
 	node->right = p2;
-	node->class[] = "conc";
+	node->name[] = "conc";
 	return (node);
 }
 
@@ -21,25 +21,25 @@ nodeType * genUnion(nodeType * p1, nodeType * p2){
 	nodeType * node;
 	node->left = p1;
 	node->right = p2;
-	node->class[] = "union";
+	node->name[] = "union";
 	return (node);
 }
 
 nodeType * genStar(nodeType * p1){
 	nodeType * node;
 	node->left = p1;
-	node->class[] = "star";
+	node->name[] = "star";
 	return (node);
 }
 
 nodeType * genUn(nodeType * p1){
 	nodeType * node;
 	node->left = p1;
-	node->class[] = "un";
+	node->name[] = "un";
 	return (node);
 }
 
-nodeType * genAtom(){
+nodeType * genAtom(//TODO){
 	nodeType * node;
 	return (node);
 }
@@ -49,8 +49,33 @@ nodeType ** genForet(){
 	return foret;
 }
 
-void ImprimArbre(nodeType *root, int prof = 1){
-	
+void ImprimArbreRec(nodeType *root, int prof){
+  ++prof;
+  char nodeName[5]= root->name;
+  for(int i=1; i=prof; ++i){
+    printf("---");
+  }
+  printf(">%s\n", nodeName);
+  if (nodeName == "conc"){
+     //printf(">conc\n");
+     ImprimArbreRec(root->left, prof);
+     ImprimArbreRec(root->right, prof);
+  }else if (nodeName == "union"){
+    //printf(">union\n");
+    ImprimArbreRec(root->left, prof);
+    ImprimArbreRec(root->right, prof);
+  }else if (nodeName == "star"){
+    // printf(">star\n");
+    ImprimArbreRec(root->left, prof);
+  }else if (nodeName == "un"){
+     //printf(">un\n");
+     ImprimArbreRec(root->left, prof);
+  }else { //atome
+     //TODO
+  }
+}
+void ImprimArbre(nodeType *root){
+  ImprimArbreRec(root, 1);
 }
 
 int main(){
