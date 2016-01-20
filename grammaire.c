@@ -6,14 +6,14 @@ struct nodeType
 {
     nodeType *left;
     nodeType *right;
-    char name[5];
+    char name[];
 };
 
 nodeType * genConc(nodeType * p1, nodeType * p2){
 	nodeType * node;
 	node->left = p1;
 	node->right = p2;
-	node->name[] = "conc";
+	strcpy(node->name, "conc");
 	return (node);
 }
 
@@ -21,25 +21,27 @@ nodeType * genUnion(nodeType * p1, nodeType * p2){
 	nodeType * node;
 	node->left = p1;
 	node->right = p2;
-	node->name[] = "union";
+	strcpy(node->name, "union");
 	return (node);
 }
 
 nodeType * genStar(nodeType * p1){
 	nodeType * node;
 	node->left = p1;
-	node->name[] = "star";
+	node->right = NULL;
+	strcpy(node->name, "star");
 	return (node);
 }
 
 nodeType * genUn(nodeType * p1){
 	nodeType * node;
 	node->left = p1;
-	node->name[] = "un";
+	node->right = NULL;
+	strcpy(node->name, "un");
 	return (node);
 }
 
-nodeType * genAtom(//TODO){
+nodeType * genAtom(){//TODO
 	nodeType * node;
 	return (node);
 }
@@ -51,7 +53,8 @@ nodeType ** genForet(){
 
 void ImprimArbreRec(nodeType *root, int prof){
   ++prof;
-  char nodeName[5]= root->name;
+  char nodeName[10];
+  strcpy(nodeName,root->name);
   for(int i=1; i=prof; ++i){
     printf("---");
   }
