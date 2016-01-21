@@ -8,7 +8,7 @@ typedef struct nodeType{
     struct nodeType *right;
     int action;
     AtomType aType;
-    char name[];
+    char name[10];
 }nodeType;
 
 nodeType *A[5];
@@ -79,17 +79,84 @@ nodeType *genAtom(char code[], int action, AtomType atomeT){//TODO
 }
 
 void genForet(){
+  nodeType** A;
+  /*int *B;
+  B = malloc(2 * sizeof(int));
+ 
+  B[0]=2;
+  B[1] = 3;
+  */
+  A = malloc(5*sizeof(nodeType*));
+  //S
 	A[0] = genConc(
- 				genStar(
+ 				  genStar(
  						genConc(
  								genConc(
  										genConc(
- 												genAtom("IDNTER",0,NonTerminal),
- 												genAtom("FLECHE",0,Terminal),
+ 												genAtom("N",0,NonTerminal),
+ 												genAtom("FLECHE",0,Terminal)
  												),
- 										genAtom("IDNTER",0,NonTerminal)),
+ 										genAtom("E",0,NonTerminal)),
  								genAtom("VIRGULE",0,Terminal))),
- 				genAtom("POINTVIRGULE",0,Terminal));										
+ 				genAtom("POINTVIRGULE",0,Terminal));
+ 	//N
+  A[1] = 	genAtom("IDNTER", 0, NonTerminal);
+  
+  //E
+  A[3] =	genConc(
+			      genAtom("T", 0, NonTerminal),
+				    genStar(
+					    genConc(
+						    genAtom("+", 0, Terminal),
+						    genAtom("T", 0, NonTerminal)
+					    )
+				    )
+		    );
+
+  //T
+  A[3] =	genConc(
+			      genAtom("F", 0, NonTerminal),
+			      genStar(
+				      genConc(
+					      genAtom(".", 0, Terminal),
+					      genAtom("F", 0, NonTerminal)
+				      )
+			      )
+		      );
+		
+  A[4] = genUnion(
+		      genUnion(
+		        genUnion(
+				      genUnion(
+				        genAtom("IDNTER", 0, NonTerminal),
+				        genAtom("ELTER", 0, Terminal)
+			        ),
+					    genConc(
+						    genAtom("(", 0, Terminal),
+						    genConc(
+							    genAtom("E", 0, NonTerminal),
+							    genAtom(")", 0, Terminal)
+						    )
+					    )
+					  ),
+					  genConc(
+						  genAtom("[", 0, Terminal),
+						  genConc(
+							  genAtom("E", 0, NonTerminal),
+							  genAtom("]", 0, Terminal)
+						  )
+					  )
+				  ),
+			    genConc(
+					  genAtom("(/", 0, Terminal),
+					  genConc(
+						  genAtom("E", 0, NonTerminal),
+						  genAtom("/)", 0, Terminal)
+					  )
+				  )
+				
+			    );
+  //return &A;									
 }
 
 void ImprimArbreRec(nodeType *p1, int prof){
@@ -120,12 +187,20 @@ void ImprimArbreRec(nodeType *p1, int prof){
      
      
   }
-}/*
+}
 void ImprimArbre(nodeType * p1){
   ImprimArbreRec(p1, 1);
-}*/
+}
 
 int main(){
-
+  genForet();
+  //printf("A : %p",A);
+  //ImprimArbre(A[0]);
+ /*int *B;
+ B = malloc(2 * sizeof(int));
+ 
+  B[0]=2;
+  B[1] = 3;
+  printf("%d %d",B[0], B[1]);*/
 	return 0;
 }
