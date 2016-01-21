@@ -8,7 +8,7 @@ typedef struct nodeType{
     struct nodeType *right;
     int action;
     AtomType aType;
-    char name[10];
+    char name[15];
 }nodeType;
 
 nodeType** A;
@@ -175,19 +175,15 @@ void ImprimArbreRec(nodeType *p1, int prof){
     
   }
   printf(">%s\n", nodeName);
-  if (nodeName == "conc"){
-     //printf(">conc\n");
+  if (strcmp(nodeName,"conc")){
      ImprimArbreRec(p1->left, prof);
      ImprimArbreRec(p1->right, prof);
-  }else if (nodeName == "union"){
-    //printf(">union\n");
+  }else if (strcmp(nodeName,"union")){
     ImprimArbreRec(p1->left, prof);
     ImprimArbreRec(p1->right, prof);
-  }else if (nodeName == "star"){
-    // printf(">star\n");
+  }else if (strcmp(nodeName,"star")){
     ImprimArbreRec(p1->left, prof);
-  }else if (nodeName == "un"){
-     //printf(">un\n");
+  }else if (strcmp(nodeName,"un")){
      ImprimArbreRec(p1->left, prof);
   }else { //atome
     
@@ -202,27 +198,36 @@ int main(){
   
   A = genForet();
   //printf("A : %p",A);
-  int i=0;
+  //int i=0;
   /*for(i=0; i<5;i++){
   
     ImprimArbre(A[i]);
   }*/
   ImprimArbre(A[4]);
-  i++;
-  /*ImprimArbre(A[i]);
-  i++;
-  //ImprimArbre(A[i]);
-  i++;
-  ImprimArbre(A[i]);
-  i++;
-  ImprimArbre(A[i]);
-  i++;*/
   
+  /*
+ nodeType* C = genConc(genStar(genConc(genConc(genConc(genAtom("N",0,NonTerminal),genAtom("FLECHE",0,Terminal)),genAtom("E",0,NonTerminal)),genAtom("VIRGULE",0,Terminal))),genAtom("POINTVIRGULE",0,Terminal));
+ 				
+ 	ImprimArbre(C);
+
+*/
+
+//--------------------tests-------------------------------------
+/*
+char n[50];
+strcpy(n, "conc");
+printf("%s",n);
+//affiche conc
+*/
+
+//-------------------------
  /*int *B;
  B = malloc(2 * sizeof(int));
  
   B[0]=2;
   B[1] = 3;
   printf("%d %d",B[0], B[1]);*/
+  
+  //affiche 2 et 3
 	return 0;
 }
