@@ -11,10 +11,10 @@ typedef struct nodeType{
     char name[10];
 }nodeType;
 
-nodeType *A[5];
-
+nodeType** A;
 nodeType *genConc(nodeType *p1, nodeType *p2){
 	nodeType *node;
+	node = malloc(sizeof(nodeType));
 	node->left = p1;
 	node->right = p2;
 	strcpy(node->name, "conc");
@@ -23,6 +23,7 @@ nodeType *genConc(nodeType *p1, nodeType *p2){
 
 nodeType *genUnion(nodeType *p1, nodeType *p2){
 	nodeType *node;
+	node = malloc(sizeof(nodeType));
 	node->left = p1;
 	node->right = p2;
 	strcpy(node->name, "union");
@@ -31,6 +32,7 @@ nodeType *genUnion(nodeType *p1, nodeType *p2){
 
 nodeType *genStar(nodeType *p1){
 	nodeType *node;
+	node = malloc(sizeof(nodeType));
 	node->left = p1;
 	node->right = NULL;
 	strcpy(node->name, "star");
@@ -39,6 +41,7 @@ nodeType *genStar(nodeType *p1){
 
 nodeType *genUn(nodeType *p1){
 	nodeType *node;
+	node = malloc(sizeof(nodeType));
 	node->left = p1;
 	node->right = NULL;
 	strcpy(node->name, "un");
@@ -47,8 +50,10 @@ nodeType *genUn(nodeType *p1){
 
 nodeType *genAtom(char code[], int action, AtomType atomeT){//TODO
 	nodeType *node;
+	node = malloc(sizeof(nodeType));
 	node->right = NULL; 
 	node->aType = atomeT;
+	/*
 	if(atomeT == NonTerminal){
 		switch (code[1] ){
 			case 'S':
@@ -73,12 +78,12 @@ nodeType *genAtom(char code[], int action, AtomType atomeT){//TODO
 	}else{
 		node->left = NULL;
 	}
-	
+	*/
 	strcpy(node->name, code);
 	return (node);
 }
 
-void genForet(){
+nodeType** genForet(){
   nodeType** A;
   /*int *B;
   B = malloc(2 * sizeof(int));
@@ -156,16 +161,18 @@ void genForet(){
 				  )
 				
 			    );
-  //return &A;									
+  return A;									
 }
-
+ 
 void ImprimArbreRec(nodeType *p1, int prof){
   ++prof;
   char nodeName[10];
+  nodeName[0]='0';
   strcpy(nodeName,p1->name);
   int i;
-  for(i=1; i=prof; ++i){
+  for(i=1; i<prof; i++){
     printf("---");
+    
   }
   printf(">%s\n", nodeName);
   if (nodeName == "conc"){
@@ -183,19 +190,34 @@ void ImprimArbreRec(nodeType *p1, int prof){
      //printf(">un\n");
      ImprimArbreRec(p1->left, prof);
   }else { //atome
-     //TODO
-     
-     
+    
   }
+
 }
 void ImprimArbre(nodeType * p1){
   ImprimArbreRec(p1, 1);
 }
 
 int main(){
-  genForet();
+  
+  A = genForet();
   //printf("A : %p",A);
-  //ImprimArbre(A[0]);
+  int i=0;
+  /*for(i=0; i<5;i++){
+  
+    ImprimArbre(A[i]);
+  }*/
+  ImprimArbre(A[4]);
+  i++;
+  /*ImprimArbre(A[i]);
+  i++;
+  //ImprimArbre(A[i]);
+  i++;
+  ImprimArbre(A[i]);
+  i++;
+  ImprimArbre(A[i]);
+  i++;*/
+  
  /*int *B;
  B = malloc(2 * sizeof(int));
  
