@@ -79,7 +79,17 @@ nodeType *genAtom(char code[], int action, AtomType atomeT){//TODO
 }
 
 void genForet(){
-
+	A[0] = genConc(
+ 				genStar(
+ 						genConc(
+ 								genConc(
+ 										genConc(
+ 												genAtom("IDNTER",0,NonTerminal),
+ 												genAtom("FLECHE",0,Terminal),
+ 												),
+ 										genAtom("IDNTER",0,NonTerminal)),
+ 								genAtom("VIRGULE",0,Terminal))),
+ 				genAtom("POINTVIRGULE",0,Terminal));										
 }
 
 void ImprimArbreRec(nodeType *p1, int prof){
