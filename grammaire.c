@@ -12,7 +12,7 @@ typedef struct nodeType{
     char name[15];
 }nodeType;
 
- nodeType** A;
+nodeType** A;
  
 nodeType *genConc(nodeType *p1, nodeType *p2){
 	nodeType *node;
@@ -57,7 +57,7 @@ nodeType *genAtom(char code[], int action, AtomType atomeT){//TODO
 	node->right = NULL; 
 	node->aType = atomeT;
 	if(atomeT == NonTerminal){
-		switch (code[0]){
+		/*switch (code[0]){
 			case 'S':
 				node->left = A[0];
 			break;
@@ -76,7 +76,7 @@ nodeType *genAtom(char code[], int action, AtomType atomeT){//TODO
 			default:
 				printf("erreur type de nonTerminal");
 			break;
-		}
+		}*/
 	}else{
 		node->left = NULL;
 	}
@@ -160,37 +160,56 @@ nodeType** genForet(){
  
 void ImprimArbreRec(nodeType *p1, int prof){
   ++prof;
-  char nodeName[10];
+  char nodeName[15];
   nodeName[0]='0';
   strcpy(nodeName,p1->name);
+  //printf("p1 name     %s  -   node name     %s\n",p1->name,nodeName);
   int i;
   for(i=1; i<prof; i++){
     printf("---");
   }
-  printf(">%s\n", nodeName);
-  if (strcmp(nodeName,"conc")){
+  //printf(">%s\n", nodeName);
+  if (strcmp(nodeName,"conc")==0){
+     printf(">conc\n");
      ImprimArbreRec(p1->left, prof);
+     //printf("**okG**\n");
      ImprimArbreRec(p1->right, prof);
-  }else if (strcmp(nodeName,"union")){
+    // printf("**okD**\n");
+ 
+  }else if (strcmp(nodeName,"union")==0){
+  printf(">union\n");
     ImprimArbreRec(p1->left, prof);
+    //printf("**okG**\n");
     ImprimArbreRec(p1->right, prof);
-  }else if (strcmp(nodeName,"star")){
+    //printf("**okD**\n");
+  }else if (strcmp(nodeName,"star")==0){
+  printf(">star\n");
     ImprimArbreRec(p1->left, prof);
-  }else if (strcmp(nodeName,"un")){
+    //printf("**okG**\n");
+  }else if (strcmp(nodeName,"un")==0){
+  printf(">un\n");
     ImprimArbreRec(p1->left, prof);
+    //printf("**okG**\n");
   }else { //atome
-    printf("%s",p1->name);
+    printf(">%s\n", nodeName);
+    //printf("%s",p1->name);
+    //printf("**okAt**\n");
   }
 
 }
 void ImprimArbre(nodeType * p1){
-  ImprimArbreRec(p1, 1);
+  ImprimArbreRec(p1, 0);
 }
 
 int main(){
 
   A = genForet();
+ // nodeType* C = genAtom("POINTVIRGULE",0,Terminal);
   ImprimArbre(A[0]);
+  ImprimArbre(A[1]);
+  ImprimArbre(A[2]);
+  ImprimArbre(A[3]);
+  ImprimArbre(A[4]);
   return 0;
   
 }
