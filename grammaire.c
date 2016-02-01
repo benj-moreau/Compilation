@@ -160,9 +160,7 @@ nodeType** genForet(){
 void ImprimArbreRec(nodeType *p1, int prof){
   ++prof;
   char nodeName[15];
-  //strcpy(nodeName,p1->name);
-  strcpy(nodeName,"truc");
-  printf(">%s\n", "test");
+  strcpy(nodeName,p1->name);
   int i;
   for(i=1; i<prof; i++){
     printf("---");
@@ -184,20 +182,43 @@ void ImprimArbreRec(nodeType *p1, int prof){
     ImprimArbreRec(p1->left, prof);
   }else { //atome
     printf(">%s\n", nodeName);
-    if(p1->aType == NonTerminal){
-    	ImprimArbreRec(p1->left, prof);
-    }
   }
-
 }
+
 void ImprimArbre(nodeType *p1){
   ImprimArbreRec(p1, 0);
+}
+
+int Analyse(nodeType *p1){
+  char nodeName[15];
+  strcpy(nodeName,p1->name);
+  if (strcmp(nodeName,"conc")==0){
+    if(Analyse(p1->left) == 1){
+    	Analyse(p1->right);
+    }else{
+    	return 0;
+    }
+  }else if (strcmp(nodeName,"union")==0){
+    if(Analyse(p1->left) == 1){
+    	return 1;
+    }else{
+    	return Analyse(p1->right);
+    }
+  }else if (strcmp(nodeName,"star")==0){
+  	while(Analyse(p1->left)==1){}
+  }else if (strcmp(nodeName,"un")==0){
+	Analyse(p1->left);
+  }else { //atome
+	if(p1->aType==Terminal){
+
+	}
+  }
 }
 
 int main(){
 
   A = genForet();
-  ImprimArbre(A[4]);
+  ImprimArbre(A[2]);
   return 0;
   
 }
