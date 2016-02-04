@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef enum {Terminal, NonTerminal/*, Operation*/} AtomType;
+typedef enum {TERMINAL, NONTERMINAL/*, Operation*/} AtomType;
 typedef enum {IDNTER, ELTER, OPERATION} Code;
 
 typedef struct nodeType{
@@ -57,7 +57,7 @@ nodeType *genAtom(char code[], int action, AtomType atomeT){//TODO
 	node = malloc(sizeof(nodeType));
 	node->right = NULL; 
 	node->aType = atomeT;
-	if(atomeT == NonTerminal){
+	if(atomeT == NONTERMINAL){
 		switch (code[0]){
 			case 'S':
 				node->left = A[0];
@@ -70,19 +70,35 @@ nodeType *genAtom(char code[], int action, AtomType atomeT){//TODO
 			break;
 			case 'T':
 				node->left = A[3];
+				node->action = 3;
 			break;
 			case 'F':
 				node->left = A[4];
+				node->action = 4;
 			break;
 			default:
-				printf("erreur type de nonTerminal");
+				printf("erreur du type de NONTERMINAL de %s", code);
 			break;
 		}
-		strcpy(node->name, "IDNTER");
+		strcpy(node->name, code);
+		node->code= IDNTER;
 	}else{
+		if(strcmp(code, ")")){
+			node->action =7;
+		}else if(strcmp(code, "]")){
+			node->action =6;
+		}else if(strcmp(code, ",") || strcmp(code, ";")){
+			node->action =1;
+		}else if(strcmp(code, "IDNTER")){
+			node->action = 2; //TODO cours c 'est marqué 5 aussi, a verif
+		}else if(strcmp(code, "ELTER")){
+			node->action = 5;
+		}
 		node->left = NULL;
+		strcpy(node->name, code);
+		node->code= ELTER;
 	}
-	strcpy(node->code, code);
+	
 	return (node);
 }
 
@@ -94,33 +110,33 @@ nodeType** genForet(){
  						genConc(
  								genConc(
  										genConc(
- 												genAtom("N",0,NonTerminal),
- 												genAtom("FLECHE",0,Terminal)
+ 												genAtom("N",0,NONTERMINAL),
+ 												genAtom("FLECHE",0,TERMINAL)
  												),
- 										genAtom("E",0,NonTerminal)),
- 								genAtom("VIRGULE",0,Terminal))),
- 				genAtom("POINTVIRGULE",0,Terminal));
+ 										genAtom("E",0,NONTERMINAL)),
+ 								genAtom("VIRGULE",0,TERMINAL))),
+ 				genAtom("POINTVIRGULE",0,TERMINAL));
   //N
-  A[1] = 	genAtom("IDNTER", 0, Terminal);
+  A[1] = 	genAtom("IDNTER", 0, TERMINAL);
   
   //E
   A[2] =	genConc(
-			      genAtom("T", 0, NonTerminal),
+			      genAtom("T", 0, NONTERMINAL),
 				    genStar(
 					    genConc(
-						    genAtom("+", 0, Terminal),
-						    genAtom("T", 0, NonTerminal)
+						    genAtom("+", 0, TERMINAL),
+						    genAtom("T", 0, NONTERMINAL)
 					    )
 				    )
 		    );
 
   //T
   A[3] =	genConc(
-			      genAtom("F", 0, NonTerminal),
+			      genAtom("F", 0, NONTERMINAL),
 			      genStar(
 				      genConc(
-					      genAtom(".", 0, Terminal),
-					      genAtom("F", 0, NonTerminal)
+					      genAtom(".", 0, TERMINAL),
+					      genAtom("F", 0, NONTERMINAL)
 				      )
 			      )
 		      );
@@ -129,30 +145,30 @@ nodeType** genForet(){
 		      genUnion(
 		        genUnion(
 				      genUnion(
-				        genAtom("IDNTER", 0, Terminal),
-				        genAtom("ELTER", 0, Terminal)
+				        genAtom("IDNTER", 0, TERMINAL),
+				        genAtom("ELTER", 0, TERMINAL)
 			        ),
 					    genConc(
-						    genAtom("(", 0, Terminal),
+						    genAtom("(", 0, TERMINAL),
 						    genConc(
-							    genAtom("E", 0, NonTerminal),
-							    genAtom(")", 0, Terminal)
+							    genAtom("E", 0, NONTERMINAL),
+							    genAtom(")", 0, TERMINAL)
 						    )
 					    )
 					  ),
 					  genConc(
-						  genAtom("[", 0, Terminal),
+						  genAtom("[", 0, TERMINAL),
 						  genConc(
-							  genAtom("E", 0, NonTerminal),
-							  genAtom("]", 0, Terminal)
+							  genAtom("E", 0, NONTERMINAL),
+							  genAtom("]", 0, TERMINAL)
 						  )
 					  )
 				  ),
 			    genConc(
-					  genAtom("(/", 0, Terminal),
+					  genAtom("(/", 0, TERMINAL),
 					  genConc(
-						  genAtom("E", 0, NonTerminal),
-						  genAtom("/)", 0, Terminal)
+						  genAtom("E", 0, NONTERMINAL),
+						  genAtom("/)", 0, TERMINAL)
 					  )
 				  )
 				
@@ -191,31 +207,99 @@ void ImprimArbreRec(nodeType *p1, int prof){
 void ImprimArbre(nodeType *p1){
   ImprimArbreRec(p1, 0);
 }
+void Action(int act){
+	switch (act){
+		case 1:
+		break;
+		case 2:
+		break;
+		case 3:
+		break;
+		case 4:
+		break;
+		case 5:
+		break;
+		case 6:
+		break;
+		case 7:
+		break;
+		default:
+			printf("erreur action numéro %d", act);
+		break;
+		
+	}
+}
+int nameToIndex(char * name){
+	switch (name[0]){
+		case 'S':
+			return 0;
+		break;
+		case 'N':
+			return 1;
+		break;
+		case 'E':
+			return 2;
+		break;
+		case 'T':
+			return 3;
 
+		break;
+		case 'F':
+			return 4;
+
+		break;
+		default:
+			printf("erreur dans nameToIndex du nom %s", name);
+		break;
+	}
+}
 int Analyse(nodeType *p1){
   char nodeName[15];
   strcpy(nodeName,p1->name);
+  int boolAnalyse = 1;
+  char *scan;
+  int i=0;
+  /*scan = resullt fonction scan*/
   if (strcmp(nodeName,"conc")==0){
     if(Analyse(p1->left) == 1){
     	Analyse(p1->right);
     }else{
-    	return 0;
+    	boolAnalyse = 0;
     }
   }else if (strcmp(nodeName,"union")==0){
     if(Analyse(p1->left) == 1){
-    	return 1;
+    	boolAnalyse = 1;
     }else{
-    	return Analyse(p1->right);
+    	boolAnalyse = Analyse(p1->right);
     }
   }else if (strcmp(nodeName,"star")==0){
   	while(Analyse(p1->left)==1){}
   }else if (strcmp(nodeName,"un")==0){
 	Analyse(p1->left);
   }else { //atome
-	if(p1->aType==Terminal){
+	if(p1->aType==TERMINAL){
+		if(p1->code = scan[i]){
+			boolAnalyse = 1;
+			if (p1->action !=0){
+				//TODO FAIRE L''ACTION
+			}
+			++i;
+			
+		}
 
+	}else if(p1->aType==NONTERMINAL && Analyse(A[nameToIndex(p1->name)])==1){
+		if (p1->action !=0){
+			//TODO FAIRE L''ACTION
+		}
+		boolAnalyse = 1;
+		++i;
+			
+	}else{
+		boolAnalyse=0;
 	}
+
   }
+  return boolAnalyse;
 }
 
 int main(){
