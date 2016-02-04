@@ -2,13 +2,15 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef enum {Terminal, NonTerminal, Operation} AtomType;
+typedef enum {Terminal, NonTerminal/*, Operation*/} AtomType;
+typedef enum {IDNTER, ELTER, OPERATION} Code;
 
 typedef struct nodeType{
     struct nodeType *left;
     struct nodeType *right;
     int action;
     AtomType aType;
+    Code code;
     char name[15];
 }nodeType;
 
@@ -76,10 +78,11 @@ nodeType *genAtom(char code[], int action, AtomType atomeT){//TODO
 				printf("erreur type de nonTerminal");
 			break;
 		}
+		strcpy(node->name, "IDNTER");
 	}else{
 		node->left = NULL;
 	}
-	strcpy(node->name, code);
+	strcpy(node->code, code);
 	return (node);
 }
 
