@@ -1,6 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include "lectureFichier.c"
 
 typedef enum {TERMINAL, NONTERMINAL/*, Operation*/} AtomType;
 typedef enum {IDNTER, ELTER, OPERATION} Code;
@@ -14,8 +12,14 @@ typedef struct nodeType{
     char name[15];
 }nodeType;
 
-nodeType** A;
- 
+typedef struct gplType{
+	char **gpl;
+	int ind;
+}gplType;
+
+nodeType **A;
+gplType gpl;
+
 nodeType *genConc(nodeType *p1, nodeType *p2){
 	nodeType *node;
 	node = malloc(sizeof(nodeType));
@@ -253,13 +257,30 @@ int nameToIndex(char * name){
 		break;
 	}
 }
+
+void scan(){
+	gpl.ind++;
+}
+
+Code code(){
+	char *val = gpl.gpl[gpl.ind];
+	printf("%s\n", val);
+	if(val[0]=='\''){
+		return ELTER;
+	}else if (strcmp(val,"->")==0 || strcmp(val,"+")==0 || strcmp(val,".")==0 || strcmp(val,"*")==0 || strcmp(val,"[")==0 || strcmp(val,"]")==0 || strcmp(val,"(")==0 || strcmp(val,")")==0 || strcmp(val,"(/")==0 || strcmp(val,"/)")==0 || strcmp(val,",")==0 || strcmp(val,";")==0){
+		
+		return OPERATION;
+	}
+	return IDNTER;
+}
+
 int Analyse(nodeType *p1){
+  gpl.gpl = lectureFichier();
+  gpl.ind = 0;
   char nodeName[15];
   strcpy(nodeName,p1->name);
-  int boolAnalyse = 1;
-  char *scan;
-  int i=0;
-  /*scan = resullt fonction scan*/
+  int boolAnalyse = 0;
+  
   if (strcmp(nodeName,"conc")==0){
     if(Analyse(p1->left) == 1){
     	Analyse(p1->right);
@@ -278,22 +299,21 @@ int Analyse(nodeType *p1){
 	Analyse(p1->left);
   }else { //atome
 	if(p1->aType==TERMINAL){
-		if(p1->code = scan[i]){
+		printf("%d, %d, %s\n",p1->code, ELTER, p1->name);
+		//IDNTER DANS A[1] est terminal ???non ?
+		if(p1->code == code()){
 			boolAnalyse = 1;
 			if (p1->action !=0){
 				//TODO FAIRE L''ACTION
 			}
-			++i;
-			
+			scan();
 		}
-
 	}else if(p1->aType==NONTERMINAL && Analyse(A[nameToIndex(p1->name)])==1){
 		if (p1->action !=0){
 			//TODO FAIRE L''ACTION
 		}
 		boolAnalyse = 1;
-		++i;
-			
+		scan();	
 	}else{
 		boolAnalyse=0;
 	}
@@ -306,6 +326,8 @@ int main(){
 
   A = genForet();
   ImprimArbre(A[2]);
+  Analyse(A[0]);
+  int i = 0;
   return 0;
   
 }

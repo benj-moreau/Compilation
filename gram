@@ -1,2 +1,2 @@
-S -> N [ bonjour ] 'sdf' ,
-G -> ( bonsoir ) ;
+X -> [ 'a' ] . 'b' , ;
+
