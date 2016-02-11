@@ -20,6 +20,7 @@ typedef struct gplType{
 nodeType **A;
 gplType gpl;
 
+
 nodeType *genConc(nodeType *p1, nodeType *p2){
 	nodeType *node;
 	node = malloc(sizeof(nodeType));
@@ -87,20 +88,22 @@ nodeType *genAtom(char code[], int action, AtomType atomeT){//TODO
 		strcpy(node->name, code);
 		node->code= IDNTER;
 	}else{
-		if(strcmp(code, ")")){
+		node->code= ELTER;
+		if(strcmp(code, ")")==0){
 			node->action =7;
-		}else if(strcmp(code, "]")){
+		}else if(strcmp(code, "]")==0){
 			node->action =6;
-		}else if(strcmp(code, ",") || strcmp(code, ";")){
+		}else if(strcmp(code, ",")==0 || strcmp(code, ";")==0){
 			node->action =1;
-		}else if(strcmp(code, "IDNTER")){
+		}else if(strcmp(code, "IDNTER")==0){
 			node->action = 2; //TODO cours c 'est marqué 5 aussi, a verif
+			node->code= IDNTER;
 		}else if(strcmp(code, "ELTER")){
 			node->action = 5;
 		}
 		node->left = NULL;
 		strcpy(node->name, code);
-		node->code= ELTER;
+		
 	}
 	
 	return (node);
@@ -259,28 +262,37 @@ int nameToIndex(char * name){
 }
 
 void scan(){
-	gpl.ind++;
+	(gpl.ind)++;
+}
+void init_scan(){
+	gpl.gpl = lectureFichier();
+	gpl.ind = 0;
+}
+void afficher_scan(){
+	//init_scan();
+	while(gpl.ind<15){
+		printf("fct affichage scan : %s\n", gpl.gpl[gpl.ind]);
+		gpl.ind ++;
+	}
 }
 
 Code code(){
 	char *val = gpl.gpl[gpl.ind];
-	printf("%s\n", val);
+	printf("fct code : %s\n", val);
 	if(val[0]=='\''){
 		return ELTER;
 	}else if (strcmp(val,"->")==0 || strcmp(val,"+")==0 || strcmp(val,".")==0 || strcmp(val,"*")==0 || strcmp(val,"[")==0 || strcmp(val,"]")==0 || strcmp(val,"(")==0 || strcmp(val,")")==0 || strcmp(val,"(/")==0 || strcmp(val,"/)")==0 || strcmp(val,",")==0 || strcmp(val,";")==0){
-		
-		return OPERATION;
+		printf("********%s\n",val);
+		return ELTER;
 	}
 	return IDNTER;
 }
 
 int Analyse(nodeType *p1){
-  gpl.gpl = lectureFichier();
-  gpl.ind = 0;
   char nodeName[15];
   strcpy(nodeName,p1->name);
-  int boolAnalyse = 0;
-  
+  int boolAnalyse = 1;
+  printf("---nodename : %s\n", nodeName);
   if (strcmp(nodeName,"conc")==0){
     if(Analyse(p1->left) == 1){
     	Analyse(p1->right);
@@ -306,14 +318,21 @@ int Analyse(nodeType *p1){
 			if (p1->action !=0){
 				//TODO FAIRE L''ACTION
 			}
-			scan();
+			printf("scan+1\n");
+			if(strcmp(p1->name,";")==0){
+				return 1;
+			}else{
+				scan();
+			}
+		}else {
+			boolAnalyse=0;
 		}
 	}else if(p1->aType==NONTERMINAL && Analyse(A[nameToIndex(p1->name)])==1){
+		printf("%d, %d, %s\n",p1->code, ELTER, p1->name);
 		if (p1->action !=0){
 			//TODO FAIRE L''ACTION
 		}
 		boolAnalyse = 1;
-		scan();	
 	}else{
 		boolAnalyse=0;
 	}
@@ -323,10 +342,16 @@ int Analyse(nodeType *p1){
 }
 
 int main(){
-
+	init_scan();
   A = genForet();
-  ImprimArbre(A[2]);
-  Analyse(A[0]);
+  //ImprimArbre(A[2]);
+  printf("resultat analyse %d\n", Analyse(A[0]));
+  //afficher_scan();
+  //printf("%s\n",*gpl.gpl);
+ // printf("%s\n",gpl.gpl[1]);
+  //printf("%s\n",gpl.gpl[2]);
+ // printf("%s\n",gpl.gpl[3]);
+  
   int i = 0;
   return 0;
   
