@@ -1,6 +1,8 @@
 #include "lectureFichier.c"
 
-typedef enum {TERMINAL, NONTERMINAL/*, Operation*/} AtomType;
+
+//--------------------------------DEFINITION DES TYPES--------------------------------
+typedef enum {TERMINAL, NONTERMINAL} AtomType;
 typedef enum {IDNTER, ELTER, OPERATION} Code;
 
 typedef struct nodeType{
@@ -11,16 +13,33 @@ typedef struct nodeType{
     Code code;
     char name[15];
 }nodeType;
+typedef struct Dico{
+	char ** tab;//tableau de chaine de char
+	int taille;
+}Dico;
+
+typedef struct TableDeSymbole{
+	Dico *dicoNT;
+	Dico *dicoT;
+}TableDeSymbole;
 
 typedef struct gplType{
 	char **gpl;
 	int ind;
 }gplType;
 
+
+
+
+//--------------------------------VARIABLES GLOBALES--------------------------------
 nodeType **A;
 gplType gpl;
+TableDeSymbole *symboles;
 
 
+
+
+//--------------------------------FONCTIONS DE BASES GRAMMAIRE--------------------------------
 nodeType *genConc(nodeType *p1, nodeType *p2){
 	nodeType *node;
 	node = malloc(sizeof(nodeType));
@@ -214,21 +233,117 @@ void ImprimArbreRec(nodeType *p1, int prof){
 void ImprimArbre(nodeType *p1){
   ImprimArbreRec(p1, 0);
 }
+
+
+//--------------------------------FONCTIONS DU SCANNER--------------------------------
+
+void scan(){
+	(gpl.ind)++;
+}
+void init_scan(){
+	gpl.gpl = lectureFichier();
+	gpl.ind = 0;
+}
+char * val_scan(){
+	return gpl.gpl[gpl.ind];
+}
+void afficher_scan(){
+	//init_scan();
+	while(gpl.ind<15){
+		printf("fct affichage scan : %s\n", val_scan());
+		gpl.ind ++;
+	}
+}
+
+Code code(){
+	char *val = val_scan();
+	if(val[0]=='\''){
+		return ELTER;
+	}else if (strcmp(val,"->")==0 || strcmp(val,"+")==0 || strcmp(val,".")==0 || strcmp(val,"*")==0 || strcmp(val,"[")==0 || strcmp(val,"]")==0 || strcmp(val,"(")==0 || strcmp(val,")")==0 || strcmp(val,"(/")==0 || strcmp(val,"/)")==0 || strcmp(val,",")==0 || strcmp(val,";")==0){
+		return OPERATION;
+	}
+		return IDNTER;
+}
+//----------------------------FONCTIONS DE LA TABLE DES SYMBOLES--------------------------------
+
+void init_symboles(){
+	symboles = malloc(2*sizeof(Dico*));
+	
+	symboles->dicoNT->tab = malloc(50*sizeof(char*));
+	symboles->dicoT->tab = malloc(50*sizeof(char*));
+	
+	symboles->dicoNT->taille = 0;
+	symboles->dicoT->taille = 0;
+	
+}
+
+//PRECOND: Verifier la précense du symboles
+void ajout_symbole(char* symb, AtomType type){
+	switch (type){
+	case TERMINAL:
+		symboles->dicoT->tab[symboles->dicoT->taille] = symb;
+		symboles->dicoT->taille++;
+	break;
+	case NONTERMINAL:
+		symboles->dicoNT->tab[symboles->dicoNT->taille] = symb;
+		symboles->dicoNT->taille++;
+	break;
+	default:
+		printf("erreur dans l'ajout de symboles -> pas de type correspondant (Terminal ou non terminal)\n");
+	break;
+	}
+}
+char* recherche(Dico* dico, AtomType type, char* scan){
+	char* symb;
+	int bool_trouve=0;
+	int i;
+	
+	if(type==TERMINAL){
+		for(i=0; i<symboles->dicoT->taille;i++){
+			symb = symboles->dicoT->tab[i];
+			if(strcmp(scan,symb)==0){
+				bool_trouve=1;
+				break;
+			}	
+		}
+	}else{
+		for(i=0; i<symboles->dicoNT->taille;i++){
+			symb = symboles->dicoT->tab[i];
+			if(strcmp(scan,symb)==0){
+				bool_trouve=1;
+				break;
+			}
+		}
+		
+	}
+	if(bool_trouve==0){
+		ajout_symbole(scan,type);
+	}
+	return symb;
+}
+
+
+//----------------------------FONCTIONS D'ANALYSE--------------------------------
+
+
 void Action(int act){
 	switch (act){
-		case 1:
+		case 1://-----------nouvelle case tab
+			//depiler t1
+			//depiler t2
+			//A[nameToIndex(t2)+5] = t1; // on met à la case suivante
 		break;
-		case 2:
+		case 2://-----------genAtom
 		break;
-		case 3:
+		case 3://-----------genUnion
 		break;
-		case 4:
+		case 4://-----------genConc
 		break;
-		case 5:
+		case 5://-----------genAtome
 		break;
-		case 6:
+		case 6://-----------genStar
 		break;
-		case 7:
+		case 7://-----------genUn
 		break;
 		default:
 			printf("erreur action numéro %d", act);
@@ -256,38 +371,10 @@ int nameToIndex(char * name){
 
 		break;
 		default:
+			//appeler nameToIndexGPL(name)
 			printf("erreur dans nameToIndex du nom %s", name);
 		break;
 	}
-}
-
-void scan(){
-	(gpl.ind)++;
-}
-void init_scan(){
-	gpl.gpl = lectureFichier();
-	gpl.ind = 0;
-}
-void afficher_scan(){
-	//init_scan();
-	while(gpl.ind<15){
-		printf("fct affichage scan : %s\n", val_scan());
-		gpl.ind ++;
-	}
-}
-char * val_scan(){
-	return gpl.gpl[gpl.ind];
-}
-
-
-Code code(){
-	char *val = val_scan();
-	if(val[0]=='\''){
-		return ELTER;
-	}else if (strcmp(val,"->")==0 || strcmp(val,"+")==0 || strcmp(val,".")==0 || strcmp(val,"*")==0 || strcmp(val,"[")==0 || strcmp(val,"]")==0 || strcmp(val,"(")==0 || strcmp(val,")")==0 || strcmp(val,"(/")==0 || strcmp(val,"/)")==0 || strcmp(val,",")==0 || strcmp(val,";")==0){
-		return OPERATION;
-	}
-		return IDNTER;
 }
 
 int Analyse(nodeType *p1){
