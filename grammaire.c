@@ -57,13 +57,13 @@ nodeType *genUn(nodeType *p1){
 	return (node);
 }
 
-nodeType *genAtom(char code[], int action, AtomType atomeT){//TODO
+nodeType *genAtom(char name[], int action, AtomType atomeT){//TODO
 	nodeType *node;
 	node = malloc(sizeof(nodeType));
 	node->right = NULL; 
 	node->aType = atomeT;
 	if(atomeT == NONTERMINAL){
-		switch (code[0]){
+		switch (name[0]){
 			case 'S':
 				node->left = A[0];
 			break;
@@ -82,30 +82,30 @@ nodeType *genAtom(char code[], int action, AtomType atomeT){//TODO
 				node->action = 4;
 			break;
 			default:
-				printf("erreur du type de NONTERMINAL de %s", code);
+				printf("erreur du type de NONTERMINAL de %s", name);
 			break;
 		}
-		strcpy(node->name, code);
+		strcpy(node->name, name);
 		node->code= IDNTER;
 	}else{
-		node->code= ELTER;
-		if(strcmp(code, ")")==0){
+		node->code= OPERATION;
+		if(strcmp(name, ")")==0){
 			node->action =7;
-		}else if(strcmp(code, "]")==0){
+		}else if(strcmp(name, "]")==0){
 			node->action =6;
-		}else if(strcmp(code, ",")==0 || strcmp(code, ";")==0){
+		}else if(strcmp(name, ",")==0 || strcmp(name, ";")==0){
 			node->action =1;
-		}else if(strcmp(code, "IDNTER")==0){
+		}else if(strcmp(name, "IDNTER")==0){
 			node->action = 2; //TODO cours c 'est marqué 5 aussi, a verif
 			node->code= IDNTER;
-		}else if(strcmp(code, "ELTER")){
+		}else if(strcmp(name, "ELTER")==0){
 			node->action = 5;
+			node->code= ELTER;
 		}
 		node->left = NULL;
-		strcpy(node->name, code);
+		strcpy(node->name, name);
 		
 	}
-	
 	return (node);
 }
 
@@ -118,11 +118,11 @@ nodeType** genForet(){
  								genConc(
  										genConc(
  												genAtom("N",0,NONTERMINAL),
- 												genAtom("FLECHE",0,TERMINAL)
+ 												genAtom("->",0,TERMINAL)
  												),
  										genAtom("E",0,NONTERMINAL)),
- 								genAtom("VIRGULE",0,TERMINAL))),
- 				genAtom("POINTVIRGULE",0,TERMINAL));
+ 								genAtom(",",0,TERMINAL))),
+ 				genAtom(";",0,TERMINAL));
   //N
   A[1] = 	genAtom("IDNTER", 0, TERMINAL);
   
@@ -268,22 +268,27 @@ void init_scan(){
 	gpl.gpl = lectureFichier();
 	gpl.ind = 0;
 }
+char * val_scan(){
+	return gpl.gpl[gpl.ind];
+}
 void afficher_scan(){
 	//init_scan();
 	while(gpl.ind<15){
-		printf("fct affichage scan : %s\n", gpl.gpl[gpl.ind]);
+		printf("fct affichage scan : %s\n", val_scan());
 		gpl.ind ++;
 	}
 }
 
+
+
 Code code(){
-	char *val = gpl.gpl[gpl.ind];
+	char *val = val_scan();
 	if(val[0]=='\''){
 		return ELTER;
 	}else if (strcmp(val,"->")==0 || strcmp(val,"+")==0 || strcmp(val,".")==0 || strcmp(val,"*")==0 || strcmp(val,"[")==0 || strcmp(val,"]")==0 || strcmp(val,"(")==0 || strcmp(val,")")==0 || strcmp(val,"(/")==0 || strcmp(val,"/)")==0 || strcmp(val,",")==0 || strcmp(val,";")==0){
-		return ELTER;
+		return OPERATION;
 	}
-	return IDNTER;
+		return IDNTER;
 }
 
 int Analyse(nodeType *p1){
@@ -309,17 +314,31 @@ int Analyse(nodeType *p1){
 	Analyse(p1->left);
   }else { //atome
 	if(p1->aType==TERMINAL){
+		printf("****char gpl : %s\n", val_scan());
+		printf("%d - %d\n", p1->code, code());
 		if(p1->code == code()){
 			boolAnalyse = 1;
-			if (p1->action !=0){
-				//TODO FAIRE L''ACTION
-			}
-			printf("scan+1\n");
-			if(strcmp(p1->name,";")==0){
-				return 1;
+			if (code()==OPERATION){
+				if(strcmp(p1->name,";")==0){
+					printf("FIN OK\n");
+					return 1;
+				}
+				if(strcmp(p1->name, val_scan())==0){
+					printf("scan+1\n");
+					scan();
+				}else{
+					boolAnalyse = 0;
+				}
 			}else{
+				
+				if (p1->action !=0){
+					//TODO FAIRE L''ACTION
+				}
+				printf("scan+1\n");
 				scan();
+				
 			}
+			
 		}else {
 			boolAnalyse=0;
 		}
