@@ -335,6 +335,11 @@ void init_pile(){
     pile->size=0;
 }
 
+void add(char* e, Pile *p){
+  p->elem[p->size] = e;
+  p->size++;
+}
+
 //----------------------------FONCTIONS D'ANALYSE--------------------------------
 
 

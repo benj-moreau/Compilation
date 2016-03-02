@@ -335,10 +335,16 @@ void init_pile(){
     pile->size=0;
 }
 
-void add(char* e, Pile *p){
-  p->elem[p->size] = e;
+void empiler(char* e, Pile *p){
+  strcpy(p->elem[p->size], e);
   p->size++;
 }
+
+char* depiler(Pile *p){
+  p->size--;
+  return p->elem[p->size];
+}
+
 
 //----------------------------FONCTIONS D'ANALYSE--------------------------------
 
