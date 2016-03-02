@@ -28,6 +28,11 @@ typedef struct gplType{
 	int ind;
 }gplType;
 
+typedef struct Pile{
+  char** elem; //tableau d'éléments
+  int size;
+}Pile;
+
 
 
 
@@ -35,6 +40,7 @@ typedef struct gplType{
 nodeType **A;
 gplType gpl;
 TableDeSymbole *symboles;
+Pile* pile;
 
 
 
@@ -129,7 +135,7 @@ nodeType *genAtom(char name[], int action, AtomType atomeT){//TODO
 }
 
 nodeType** genForet(){
-	A =(nodeType**) malloc(5*sizeof(nodeType*));
+	A =(nodeType**) malloc(50*sizeof(nodeType*));
   //S
 	A[0] = genConc(
  				  genStar(
@@ -323,6 +329,16 @@ char* recherche(Dico* dico, AtomType type, char* scan){
 	return symb;
 }
 
+void init_pile(){
+  	pile=malloc(sizeof(Pile));
+    pile->elem = malloc(50*sizeof(char*));
+    pile->size=0;
+}
+
+void add(char* e, Pile *p){
+  p->elem[p->size] = e;
+  p->size++;
+}
 
 //----------------------------FONCTIONS D'ANALYSE--------------------------------
 
@@ -444,6 +460,8 @@ int Analyse(nodeType *p1){
 
 int main(){
 	init_scan();
+
+
 	A = genForet();
 	printf("resultat analyse %d\n", Analyse(A[0]));
 	return 0;
