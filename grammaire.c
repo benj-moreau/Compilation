@@ -13,15 +13,16 @@ typedef struct nodeType{
     Code code;
     char name[15];
 }nodeType;
+
 typedef struct Dico{
 	char ** tab;//tableau de chaine de char
 	int taille;
 }Dico;
 
-typedef struct TableDeSymbole{
+typedef struct Dicos{
 	Dico *dicoNT;
 	Dico *dicoT;
-}TableDeSymbole;
+}Dicos;
 
 typedef struct gplType{
 	char **gpl;
@@ -29,20 +30,24 @@ typedef struct gplType{
 }gplType;
 
 typedef struct Pile{
-  char** elem; //tableau d'éléments
+  nodeType** elem; //tableau d'éléments
   int size;
 }Pile;
 
+typedef struct TableDesSymboles{
+	char** table;
+	int size;
+}TableDesSymboles;
 
 
 
 //--------------------------------VARIABLES GLOBALES--------------------------------
 nodeType **A;
+//TODO size
 gplType gpl;
-TableDeSymbole *symboles;
+Dicos *dicos;
 Pile* pile;
-
-
+TableDesSymboles* tableDesSymboles;
 
 
 //--------------------------------FONCTIONS DE BASES GRAMMAIRE--------------------------------
@@ -82,7 +87,7 @@ nodeType *genUn(nodeType *p1){
 	return (node);
 }
 
-nodeType *genAtom(char name[], int action, AtomType atomeT){//TODO
+nodeType *genAtom(char name[], int action, AtomType atomeT){
 	nodeType *node;
 	node = malloc(sizeof(nodeType));
 	node->right = NULL; 
@@ -272,30 +277,30 @@ Code code(){
 }
 //----------------------------FONCTIONS DE LA TABLE DES SYMBOLES--------------------------------
 
-void init_symboles(){
-	symboles = malloc(2*sizeof(Dico*));
+void init_dicos(){
+	dicos = malloc(2*sizeof(Dico*));
 	
-	symboles->dicoNT->tab = malloc(50*sizeof(char*));
-	symboles->dicoT->tab = malloc(50*sizeof(char*));
+	dicos->dicoNT->tab = malloc(50*sizeof(char*));
+	dicos->dicoT->tab = malloc(50*sizeof(char*));
 	
-	symboles->dicoNT->taille = 0;
-	symboles->dicoT->taille = 0;
+	dicos->dicoNT->taille = 0;
+	dicos->dicoT->taille = 0;
 	
 }
 
-//PRECOND: Verifier la précense du symboles
+//PRECOND: Verifier la précense du dicos
 void ajout_symbole(char* symb, AtomType type){
 	switch (type){
 	case TERMINAL:
-		symboles->dicoT->tab[symboles->dicoT->taille] = symb;
-		symboles->dicoT->taille++;
+		dicos->dicoT->tab[dicos->dicoT->taille] = symb;
+		dicos->dicoT->taille++;
 	break;
 	case NONTERMINAL:
-		symboles->dicoNT->tab[symboles->dicoNT->taille] = symb;
-		symboles->dicoNT->taille++;
+		dicos->dicoNT->tab[dicos->dicoNT->taille] = symb;
+		dicos->dicoNT->taille++;
 	break;
 	default:
-		printf("erreur dans l'ajout de symboles -> pas de type correspondant (Terminal ou non terminal)\n");
+		printf("erreur dans l'ajout de dicos -> pas de type correspondant (Terminal ou non terminal)\n");
 	break;
 	}
 }
@@ -303,18 +308,18 @@ char* recherche(Dico* dico, AtomType type, char* scan){
 	char* symb;
 	int bool_trouve=0;
 	int i;
-	
 	if(type==TERMINAL){
-		for(i=0; i<symboles->dicoT->taille;i++){
-			symb = symboles->dicoT->tab[i];
+		for(i=0; i<dicos->dicoT->taille;i++){
+			symb = dicos->dicoT->tab[i];
 			if(strcmp(scan,symb)==0){
 				bool_trouve=1;
 				break;
-			}	
+			}
 		}
 	}else{
-		for(i=0; i<symboles->dicoNT->taille;i++){
-			symb = symboles->dicoT->tab[i];
+		//printf("dicotaille : %d\n",dicos->dicoT->taille);
+		for(i=0; i<dicos->dicoNT->taille;i++){
+			symb = dicos->dicoT->tab[i];
 			if(strcmp(scan,symb)==0){
 				bool_trouve=1;
 				break;
@@ -329,44 +334,81 @@ char* recherche(Dico* dico, AtomType type, char* scan){
 	return symb;
 }
 
-void init_pile(){
+void init_pile_table(){
   	pile=malloc(sizeof(Pile));
-    pile->elem = malloc(50*sizeof(char*));
+    pile->elem = malloc(50*sizeof(nodeType*));
     pile->size=0;
+    tableDesSymboles = malloc(sizeof(TableDesSymboles));
+    tableDesSymboles->table = malloc(50*sizeof(char*));
+    tableDesSymboles->size = 0;
 }
 
-void empiler(char* e, Pile *p){
-  strcpy(p->elem[p->size], e);
-  p->size++;
+//TODO voir si besoin recopie ?????
+void empiler(nodeType* e){
+	pile->elem[pile->size] = e;
+	pile->size++;
 }
 
-char* depiler(Pile *p){
-  p->size--;
-  return p->elem[p->size];
+//precond: pile non vide
+nodeType* depiler(){
+  pile->size--;
+  return pile->elem[pile->size];
 }
 
+//retourne index de name sinon -1
+int nameToIndexGPL(char* name){
+	int i;
+	for(i=0;i<tableDesSymboles->size;i++){
+		if(strcmp(name,tableDesSymboles->table[i])==0){
+			return i+5;
+		}
+	}
+	return -1;
+}
+
+//precond : pas plus de 50 dicos
+void addToSymboles(char* name){
+	strcpy(tableDesSymboles->table[tableDesSymboles->size],name);
+	tableDesSymboles->size++;
+}
 
 //----------------------------FONCTIONS D'ANALYSE--------------------------------
 
 
-void Action(int act){
+void action(int act){
+	nodeType *t1,*t2;
 	switch (act){
 		case 1://-----------nouvelle case tab
-			//depiler t1
-			//depiler t2
-			//A[nameToIndex(t2)+5] = t1; // on met à la case suivante
+			t1 = depiler();
+			t2 = depiler();
+			A[nameToIndex(t2->name)] = t1;
 		break;
 		case 2://-----------genAtom
+			printf("//////action 2 : %s\n",val_scan());
+			//TODO ne passe pas dans recherche ! dicos->dicoNT ???????
+			empiler(genAtom(recherche(dicos->dicoNT, NONTERMINAL, val_scan()),act,NONTERMINAL));
+			printf("//////action 2 : %s\n",val_scan());
 		break;
 		case 3://-----------genUnion
+			t1 = depiler();
+			t2 = depiler();
+			empiler(genUnion(t2,t1));
 		break;
 		case 4://-----------genConc
+			t1 = depiler();
+			t2 = depiler();
+			empiler(genConc(t2,t1));
 		break;
 		case 5://-----------genAtome
+			empiler(genAtom(recherche(dicos->dicoT, TERMINAL, val_scan()),act,TERMINAL));
 		break;
 		case 6://-----------genStar
+			t1 = depiler();
+			empiler(genStar(t1));
 		break;
 		case 7://-----------genUn
+			t1 = depiler();
+			empiler(genUn(t1));
 		break;
 		default:
 			printf("erreur action numéro %d", act);
@@ -427,6 +469,9 @@ int Analyse(nodeType *p1){
 		printf("%d - %d\n", p1->code, code());
 		if(p1->code == code()){
 			boolAnalyse = 1;
+			if (p1->action !=0){
+					action(p1->action);
+			}
 			if (code()==OPERATION){
 				if(strcmp(p1->name,";")==0){
 					printf("FIN OK\n");
@@ -439,10 +484,6 @@ int Analyse(nodeType *p1){
 					boolAnalyse = 0;
 				}
 			}else{
-				
-				if (p1->action !=0){
-					//TODO FAIRE L''ACTION
-				}
 				printf("scan+1\n");
 				scan();
 				
@@ -453,7 +494,7 @@ int Analyse(nodeType *p1){
 		}
 	}else if(p1->aType==NONTERMINAL && Analyse(A[nameToIndex(p1->name)])==1){
 		if (p1->action !=0){
-			//TODO FAIRE L''ACTION
+			action(p1->action);
 		}
 		boolAnalyse = 1;
 	}else{
@@ -465,6 +506,7 @@ int Analyse(nodeType *p1){
 }
 
 int main(){
+	init_pile_table();
 	init_scan();
 
 
