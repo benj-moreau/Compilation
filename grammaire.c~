@@ -278,18 +278,13 @@ Code code(){
 //----------------------------FONCTIONS DE LA TABLE DES SYMBOLES--------------------------------
 
 void init_dicos(){
-  printf("ok1\n");
 	dicos = malloc(2*sizeof(Dico*));
-	 printf("ok2\n");
 	dicos->dicoNT = malloc(sizeof(Dico*));
 	dicos->dicoT = malloc(sizeof(Dico*));
 	dicos->dicoNT->tab = malloc(50*sizeof(char*));
-	printf("ok3\n");
 	dicos->dicoT->tab = malloc(50*sizeof(char*));
-	 printf("ok3\n");
 	dicos->dicoNT->taille = 0;
 	dicos->dicoT->taille = 0;
-	 printf("ok4\n");
 }
 
 //PRECOND: Verifier la précense du dicos
@@ -383,36 +378,44 @@ void action(int act){
 	nodeType *t1,*t2;
 	switch (act){
 		case 1://-----------nouvelle case tab
+		printf("//////action 1 : %s\n",val_scan());
+		printf("ok\n");
 			t1 = depiler();
+			printf("ok\n");
 			t2 = depiler();
+			printf("//////action 1 name2ind : %d\n",nameToIndex(t2->name));
 			A[nameToIndex(t2->name)] = t1;
 		break;
 		case 2://-----------genAtom
-		  printf("////rech dico : %p\n",dicos->dicoNT);
-			printf("//////action 2 : %s\n",val_scan());
+		  
 			
 			//TODO ne passe pas dans recherche ! dicos->dicoNT ???????
 			empiler(genAtom(recherche(dicos->dicoNT, NONTERMINAL, val_scan()),act,NONTERMINAL));
 			printf("//////action 2 : %s\n",val_scan());
 		break;
 		case 3://-----------genUnion
+		printf("//////action 3 : %s\n",val_scan());
 			t1 = depiler();
 			t2 = depiler();
 			empiler(genUnion(t2,t1));
 		break;
 		case 4://-----------genConc
+		printf("//////action 4 : %s\n",val_scan());
 			t1 = depiler();
 			t2 = depiler();
 			empiler(genConc(t2,t1));
 		break;
 		case 5://-----------genAtome
+		printf("//////action 5 : %s\n",val_scan());
 			empiler(genAtom(recherche(dicos->dicoT, TERMINAL, val_scan()),act,TERMINAL));
 		break;
 		case 6://-----------genStar
+		printf("//////action 6 : %s\n",val_scan());
 			t1 = depiler();
 			empiler(genStar(t1));
 		break;
 		case 7://-----------genUn
+		printf("//////action 7 : %s\n",val_scan());
 			t1 = depiler();
 			empiler(genUn(t1));
 		break;
