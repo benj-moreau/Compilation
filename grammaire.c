@@ -279,13 +279,12 @@ Code code(){
 
 void init_dicos(){
 	dicos = malloc(2*sizeof(Dico*));
-	
+	dicos->dicoNT = malloc(sizeof(Dico*));
+	dicos->dicoT = malloc(sizeof(Dico*));
 	dicos->dicoNT->tab = malloc(50*sizeof(char*));
 	dicos->dicoT->tab = malloc(50*sizeof(char*));
-	
 	dicos->dicoNT->taille = 0;
 	dicos->dicoT->taille = 0;
-	
 }
 
 //PRECOND: Verifier la précense du dicos
@@ -384,7 +383,9 @@ void action(int act){
 			A[nameToIndex(t2->name)] = t1;
 		break;
 		case 2://-----------genAtom
+		  printf("////rech dico : %p\n",dicos->dicoNT);
 			printf("//////action 2 : %s\n",val_scan());
+			
 			//TODO ne passe pas dans recherche ! dicos->dicoNT ???????
 			empiler(genAtom(recherche(dicos->dicoNT, NONTERMINAL, val_scan()),act,NONTERMINAL));
 			printf("//////action 2 : %s\n",val_scan());
@@ -506,6 +507,7 @@ int Analyse(nodeType *p1){
 }
 
 int main(){
+  init_dicos();
 	init_pile_table();
 	init_scan();
 
