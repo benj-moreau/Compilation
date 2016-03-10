@@ -258,6 +258,19 @@ void init_scan(){
 char * val_scan(){
 	return gpl.gpl[gpl.ind];
 }
+int action_scan(){
+	if (strcmp(val_scan(),";")==0){
+		return 0;
+	}else if(gpl.gpl[gpl.ind+1][0]=='#'){
+		char * action_str;
+		action_str = malloc (4*sizeof(char));
+		strcpy(action_str,gpl.gpl[gpl.ind+1]+1);//on eleve le #
+		//strcpy(action_str, action_str +1);
+		return atoi(action_str);
+	}else{
+		return 0;
+	}
+}
 void afficher_scan(){
 	//init_scan();
 	while(gpl.ind<15){
@@ -307,7 +320,9 @@ char* recherche(Dico* dico, AtomType type, char* scan){
 	char* symb;
 	int bool_trouve=0;
 	int i;
+	
 	if(type==TERMINAL){
+	printf("recherche if\n");
 		for(i=0; i<dicos->dicoT->taille;i++){
 			symb = dicos->dicoT->tab[i];
 			if(strcmp(scan,symb)==0){
@@ -316,9 +331,11 @@ char* recherche(Dico* dico, AtomType type, char* scan){
 			}
 		}
 	}else{
-		//printf("dicotaille : %d\n",dicos->dicoT->taille);
+	printf("recherche else\n");
+		printf("dicotaille : %d\n",dicos->dicoNT->taille);
+		//TODO ERREUR SEG PAR ICI 
 		for(i=0; i<dicos->dicoNT->taille;i++){
-			symb = dicos->dicoT->tab[i];
+			symb = dicos->dicoNT->tab[i];
 			if(strcmp(scan,symb)==0){
 				bool_trouve=1;
 				break;
@@ -387,11 +404,11 @@ void action(int act){
 			A[nameToIndex(t2->name)] = t1;
 		break;
 		case 2://-----------genAtom
-		  
-			
-			//TODO ne passe pas dans recherche ! dicos->dicoNT ???????
-			empiler(genAtom(recherche(dicos->dicoNT, NONTERMINAL, val_scan()),act,NONTERMINAL));
-			printf("//////action 2 : %s\n",val_scan());
+		printf("//////action 2 : %s\n",val_scan());
+			printf("action scan\n");
+			printf(">%d\n", action_scan());
+			empiler(genAtom(recherche(dicos->dicoNT, NONTERMINAL, val_scan()),action_scan(),NONTERMINAL));
+			printf("emiler ok\n");
 		break;
 		case 3://-----------genUnion
 		printf("//////action 3 : %s\n",val_scan());
@@ -407,7 +424,9 @@ void action(int act){
 		break;
 		case 5://-----------genAtome
 		printf("//////action 5 : %s\n",val_scan());
-			empiler(genAtom(recherche(dicos->dicoT, TERMINAL, val_scan()),act,TERMINAL));
+		printf("action scan\n");
+			printf(">%d\n", action_scan());
+			empiler(genAtom(recherche(dicos->dicoT, TERMINAL, val_scan()),action_scan(),TERMINAL));
 		break;
 		case 6://-----------genStar
 		printf("//////action 6 : %s\n",val_scan());
@@ -455,63 +474,61 @@ int Analyse(nodeType *p1){
   char nodeName[15];
   strcpy(nodeName,p1->name);
   int boolAnalyse = 1;
-  printf("---nodename : %s\n", nodeName);
+  printf("---p1->name : %s\n", nodeName);
   if (strcmp(nodeName,"conc")==0){
     if(Analyse(p1->left) == 1){
-    	Analyse(p1->right);
+    	return Analyse(p1->right);
     }else{
-    	boolAnalyse = 0;
+    	return 0;
     }
   }else if (strcmp(nodeName,"union")==0){
     if(Analyse(p1->left) == 1){
-    	boolAnalyse = 1;
+    	return 1;
     }else{
-    	boolAnalyse = Analyse(p1->right);
+    	return Analyse(p1->right);
     }
   }else if (strcmp(nodeName,"star")==0){
   	while(Analyse(p1->left)==1){}
+  	return 1;
   }else if (strcmp(nodeName,"un")==0){
-	Analyse(p1->left);
+	return Analyse(p1->left);
   }else { //atome
 	if(p1->aType==TERMINAL){
-		printf("****char gpl : %s\n", val_scan());
+		printf("****val scan : %s\n", val_scan());
 		printf("%d - %d\n", p1->code, code());
 		if(p1->code == code()){
-			boolAnalyse = 1;
 			if (p1->action !=0){
 					action(p1->action);
 			}
 			if (code()==OPERATION){
-				if(strcmp(p1->name,";")==0){
-					printf("FIN OK\n");
-					return 1;
-				}
 				if(strcmp(p1->name, val_scan())==0){
 					printf("scan+1\n");
 					scan();
+					return 1;
 				}else{
-					boolAnalyse = 0;
+					return 0;
 				}
+				
 			}else{
 				printf("scan+1\n");
 				scan();
-				
+				return 1;
 			}
 			
 		}else {
-			boolAnalyse=0;
+			return 0;
 		}
 	}else if(p1->aType==NONTERMINAL && Analyse(A[nameToIndex(p1->name)])==1){
 		if (p1->action !=0){
 			action(p1->action);
 		}
-		boolAnalyse = 1;
+		return 1;
 	}else{
-		boolAnalyse=0;
+		return 0;
 	}
 
   }
-  return boolAnalyse;
+  return 0;// normalement on ne passe pas la
 }
 
 int main(){
