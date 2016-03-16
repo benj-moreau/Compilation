@@ -94,28 +94,34 @@ nodeType *genAtom(char name[], int action, AtomType atomeT){
 	node->right = NULL; 
 	node->aType = atomeT;
 	if(atomeT == NONTERMINAL){
-		switch (name[0]){
-			case 'S':
+		if(       strcmp(name,"S")==0){
 				node->left = A[0];
-			break;
-			case 'N':
+		}else if(strcmp(name,  "N")==0){
 				node->left = A[1];
-			break;
-			case 'E':
+		}else if(strcmp(name,  "E")==0){
 				node->left = A[2];
-			break;
-			case 'T':
+		}else if(strcmp(name,  "T")==0){
 				node->left = A[3];
 				node->action = 3;
-			break;
-			case 'F':
+		}else if(strcmp(name,  "F")==0){
 				node->left = A[4];
 				node->action = 4;
-			break;
-			default:
-				printf("erreur du type de NONTERMINAL de %s\n", name);
-			break;
+		}else{
+	    int bool_trouve=0, i;
+	    char * symb;
+		  for(i=0; i<dicos->dicoNT->taille;i++){
+			  symb = dicos->dicoNT->tab[i];
+			  if(strcmp(name,symb)==0){
+			    node->left = A[nameToIndexGPL(name)];
+				  bool_trouve=1;
+				  break;
+			  }
+		  }
+		  if(bool_trouve == 0)
+		    printf("erreur du type de NONTERMINAL de %s\n", name);
 		}
+		  
+
 		strcpy(node->name, name);
 		node->code= IDNTER;
 	}else{
