@@ -1,4 +1,5 @@
 #include "lectureFichier.c"
+//TODO on trouve X, on fait genAtom(x) maix X n'y est pas donc : erreur du type de nonterminal ...
 
 
 //--------------------------------DEFINITION DES TYPES--------------------------------
@@ -112,7 +113,7 @@ nodeType *genAtom(char name[], int action, AtomType atomeT){
 				node->action = 4;
 			break;
 			default:
-				printf("erreur du type de NONTERMINAL de %s", name);
+				printf("erreur du type de NONTERMINAL de %s\n", name);
 			break;
 		}
 		strcpy(node->name, name);
@@ -315,7 +316,9 @@ void ajout_symbole(char* symb, AtomType type){
 		printf("erreur dans l'ajout de dicos -> pas de type correspondant (Terminal ou non terminal)\n");
 	break;
 	}
+printf("Ajout symbole effectué !\n");
 }
+
 char* recherche(Dico* dico, AtomType type, char* scan){
 	char* symb;
 	int bool_trouve=0;
@@ -333,7 +336,6 @@ char* recherche(Dico* dico, AtomType type, char* scan){
 	}else{
 	printf("recherche else\n");
 		printf("dicotaille : %d\n",dicos->dicoNT->taille);
-		//TODO ERREUR SEG PAR ICI 
 		for(i=0; i<dicos->dicoNT->taille;i++){
 			symb = dicos->dicoNT->tab[i];
 			if(strcmp(scan,symb)==0){
@@ -346,12 +348,13 @@ char* recherche(Dico* dico, AtomType type, char* scan){
 	if(bool_trouve==0){
 		ajout_symbole(scan,type);
 	}
-	
-	return symb;
+	printf("symbole : %s\n",scan);
+	return scan;
+
 }
 
 void init_pile_table(){
-  	pile=malloc(sizeof(Pile));
+    pile=malloc(sizeof(Pile));
     pile->elem = malloc(50*sizeof(nodeType*));
     pile->size=0;
     tableDesSymboles = malloc(sizeof(TableDesSymboles));
@@ -363,11 +366,13 @@ void init_pile_table(){
 void empiler(nodeType* e){
 	pile->elem[pile->size] = e;
 	pile->size++;
+	printf("size %d\n", pile->size);
 }
 
 //precond: pile non vide
 nodeType* depiler(){
   pile->size--;
+  printf("size %d\n", pile->size);
   return pile->elem[pile->size];
 }
 
@@ -392,6 +397,7 @@ void addToSymboles(char* name){
 
 
 void action(int act){
+	printf("action : %d\n",act);
 	nodeType *t1,*t2;
 	switch (act){
 		case 1://-----------nouvelle case tab
@@ -407,8 +413,10 @@ void action(int act){
 		printf("//////action 2 : %s\n",val_scan());
 			printf("action scan\n");
 			printf(">%d\n", action_scan());
+			//TODO segfault ici !!!!!!!!!!!! c'est empiler !!!!
+			//empiler(genAtom("if",10,NONTERMINAL));
 			empiler(genAtom(recherche(dicos->dicoNT, NONTERMINAL, val_scan()),action_scan(),NONTERMINAL));
-			printf("emiler ok\n");
+			printf("empiler ok\n");
 		break;
 		case 3://-----------genUnion
 		printf("//////action 3 : %s\n",val_scan());
@@ -471,6 +479,7 @@ int nameToIndex(char * name){
 }
 
 int Analyse(nodeType *p1){
+
   char nodeName[15];
   strcpy(nodeName,p1->name);
   int boolAnalyse = 1;
@@ -492,12 +501,12 @@ int Analyse(nodeType *p1){
   	return 1;
   }else if (strcmp(nodeName,"un")==0){
 	return Analyse(p1->left);
-  }else { //atome
+  }else { //atome	
 	if(p1->aType==TERMINAL){
 		printf("****val scan : %s\n", val_scan());
 		printf("%d - %d\n", p1->code, code());
 		if(p1->code == code()){
-			if (p1->action !=0){
+			if (p1->action !=0){	
 					action(p1->action);
 			}
 			if (code()==OPERATION){
@@ -532,11 +541,9 @@ int Analyse(nodeType *p1){
 }
 
 int main(){
-  init_dicos();
+  	init_dicos();
 	init_pile_table();
 	init_scan();
-
-
 	A = genForet();
 	printf("resultat analyse %d\n", Analyse(A[0]));
 	return 0;
