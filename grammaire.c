@@ -1,5 +1,7 @@
 #include "lectureFichier.c"
-//TODO on trouve X, on fait genAtom(x) maix X n'y est pas donc : erreur du type de nonterminal ...
+//TODO codeGPL() qui va chercher dans les dicos
+//TODO AnalyseGPL() qui analyse en utilisant les fonctions GPL
+//TODO GPL_action()
 
 
 //--------------------------------DEFINITION DES TYPES--------------------------------
@@ -44,6 +46,7 @@ typedef struct TableDesSymboles{
 
 //--------------------------------VARIABLES GLOBALES--------------------------------
 nodeType **A;
+int tailleForet =5;
 //TODO size
 gplType gpl;
 Dicos *dicos;
@@ -92,6 +95,7 @@ nodeType *genAtom(char name[], int action, AtomType atomeT){
 	nodeType *node;
 	node = malloc(sizeof(nodeType));
 	node->right = NULL; 
+	node->action = action;
 	node->aType = atomeT;
 	if(atomeT == NONTERMINAL){
 		if(       strcmp(name,"S")==0){
@@ -102,42 +106,24 @@ nodeType *genAtom(char name[], int action, AtomType atomeT){
 				node->left = A[2];
 		}else if(strcmp(name,  "T")==0){
 				node->left = A[3];
-				node->action = 3;
 		}else if(strcmp(name,  "F")==0){
 				node->left = A[4];
-				node->action = 4;
 		}else{
-	    int bool_trouve=0, i;
-	    char * symb;
-		  for(i=0; i<dicos->dicoNT->taille;i++){
-			  symb = dicos->dicoNT->tab[i];
-			  if(strcmp(name,symb)==0){
-			    node->left = A[nameToIndexGPL(name)];
-			    //TODO question difference entre table des symbole et dicos ?
-				  bool_trouve=1;
-				  break;
-			  }
-		  }
-		  if(bool_trouve == 0)
-		    printf("erreur du type de NONTERMINAL de %s\n", name);
+			int ind = nameToIndexGPL(name);
+			if (ind !=-1){			
+				node->left = A[nameToIndexGPL(name)];
+			}else{
+				printf("erreur du type de NONTERMINAL de %s\n", name);
+		   }
 		}
-		  
-
 		strcpy(node->name, name);
 		node->code= IDNTER;
+	
 	}else{
 		node->code= OPERATION;
-		if(strcmp(name, ")")==0){
-			node->action =7;
-		}else if(strcmp(name, "]")==0){
-			node->action =6;
-		}else if(strcmp(name, ",")==0 || strcmp(name, ";")==0){
-			node->action =1;
-		}else if(strcmp(name, "IDNTER")==0){
-			node->action = 2; //TODO cours c 'est marqué 5 aussi, a verif
+		if(strcmp(name, "IDNTER")==0){	
 			node->code= IDNTER;
-		}else if(strcmp(name, "ELTER")==0){
-			node->action = 5;
+		}else if(strcmp(name, "ELTER")==0){	
 			node->code= ELTER;
 		}
 		node->left = NULL;
@@ -159,10 +145,10 @@ nodeType** genForet(){
  												genAtom("->",0,TERMINAL)
  												),
  										genAtom("E",0,NONTERMINAL)),
- 								genAtom(",",0,TERMINAL))),
+ 								genAtom(",",1,TERMINAL))),
  				genAtom(";",0,TERMINAL));
   //N
-  A[1] = 	genAtom("IDNTER", 0, TERMINAL);
+  A[1] = 	genAtom("IDNTER", 2, TERMINAL);
   
   //E
   A[2] =	genConc(
@@ -170,7 +156,7 @@ nodeType** genForet(){
 				    genStar(
 					    genConc(
 						    genAtom("+", 0, TERMINAL),
-						    genAtom("T", 0, NONTERMINAL)
+						    genAtom("T", 3, NONTERMINAL)
 					    )
 				    )
 		    );
@@ -181,7 +167,7 @@ nodeType** genForet(){
 			      genStar(
 				      genConc(
 					      genAtom(".", 0, TERMINAL),
-					      genAtom("F", 0, NONTERMINAL)
+					      genAtom("F", 4, NONTERMINAL)
 				      )
 			      )
 		      );
@@ -190,8 +176,8 @@ nodeType** genForet(){
 		      genUnion(
 		        genUnion(
 				      genUnion(
-				        genAtom("IDNTER", 0, TERMINAL),
-				        genAtom("ELTER", 0, TERMINAL)
+				        genAtom("IDNTER", 2, TERMINAL),
+				        genAtom("ELTER", 5, TERMINAL)
 			        ),
 					    genConc(
 						    genAtom("(", 0, TERMINAL),
@@ -205,7 +191,7 @@ nodeType** genForet(){
 						  genAtom("[", 0, TERMINAL),
 						  genConc(
 							  genAtom("E", 0, NONTERMINAL),
-							  genAtom("]", 0, TERMINAL)
+							  genAtom("]", 6, TERMINAL)
 						  )
 					  )
 				  ),
@@ -213,7 +199,7 @@ nodeType** genForet(){
 					  genAtom("(/", 0, TERMINAL),
 					  genConc(
 						  genAtom("E", 0, NONTERMINAL),
-						  genAtom("/)", 0, TERMINAL)
+						  genAtom("/)", 7, TERMINAL)
 					  )
 				  )
 				
@@ -260,7 +246,11 @@ void scan(){
 	(gpl.ind)++;
 }
 void init_scan(){
-	gpl.gpl = lectureFichier();
+	gpl.gpl = lectureFichier("gram");
+	gpl.ind = 0;
+}
+void init_scanGPL(){
+	gpl.gpl = lectureFichier("program");
 	gpl.ind = 0;
 }
 char * val_scan(){
@@ -310,20 +300,24 @@ void init_dicos(){
 
 //PRECOND: Verifier la précense du dicos
 void ajout_symbole(char* symb, AtomType type){
+char copie[50];
 	switch (type){
-	case TERMINAL:
+	case TERMINAL:		
+		strcpy(copie, symb);
+		symb=strtok(copie,"\'");
 		dicos->dicoT->tab[dicos->dicoT->taille] = symb;
 		dicos->dicoT->taille++;
+		printf("Ajout symbole %s terminal effectué !\n", symb);
 	break;
 	case NONTERMINAL:
 		dicos->dicoNT->tab[dicos->dicoNT->taille] = symb;
 		dicos->dicoNT->taille++;
+		printf("Ajout symbole non-terminal effectué !\n");
 	break;
 	default:
 		printf("erreur dans l'ajout de dicos -> pas de type correspondant (Terminal ou non terminal)\n");
 	break;
 	}
-printf("Ajout symbole effectué !\n");
 }
 
 char* recherche(Dico* dico, AtomType type, char* scan){
@@ -386,8 +380,8 @@ nodeType* depiler(){
 //retourne index de name sinon -1
 int nameToIndexGPL(char* name){
 	int i;
-	for(i=0;i<tableDesSymboles->size;i++){
-		if(strcmp(name,tableDesSymboles->table[i])==0){
+	for(i=0;i<dicos->dicoNT->taille;i++){
+		if(strcmp(name,dicos->dicoNT->tab[i])==0){
 			return i+5;
 		}
 	}
@@ -408,13 +402,12 @@ void action(int act){
 	nodeType *t1,*t2;
 	switch (act){
 		case 1://-----------nouvelle case tab
-		printf("//////action 1 : %s\n",val_scan());
 		
 			t1 = depiler();
-			printf("ok\n");
 			t2 = depiler();
-			printf("//////action 1 name2ind : %d\n",nameToIndex(t2->name));
-			A[nameToIndex(t2->name)] = t1;
+			printf("//////action 1 name2ind : %d\n",nameToIndexGPL(t2->name));
+			A[nameToIndexGPL(t2->name)] = t1;
+			tailleForet++;
 		break;
 		case 2://-----------genAtom
 		printf("//////action 2 : %s\n",val_scan());
@@ -460,28 +453,20 @@ void action(int act){
 	}
 }
 int nameToIndex(char * name){
-	switch (name[0]){
-		case 'S':
+	if(       strcmp(name,"S")==0){
 			return 0;
-		break;
-		case 'N':
+	}else if(strcmp(name,  "N")==0){
 			return 1;
-		break;
-		case 'E':
+	}else if(strcmp(name,  "E")==0){
 			return 2;
-		break;
-		case 'T':
+	}else if(strcmp(name,  "T")==0){
 			return 3;
-
-		break;
-		case 'F':
+	}else if(strcmp(name,  "F")==0){
 			return 4;
-
-		break;
-		default:
-			//appeler nameToIndexGPL(name)
-			printf("erreur dans nameToIndex du nom %s", name);
-		break;
+	}else{
+	
+		nameToIndexGPL(name);
+		//printf("erreur dans nameToIndex du nom %s", name);
 	}
 }
 
@@ -553,5 +538,11 @@ int main(){
 	init_scan();
 	A = genForet();
 	printf("resultat analyse %d\n", Analyse(A[0]));
+	ImprimArbre(A[5]);
+	ImprimArbre(A[tailleForet-1]);
+	init_scanGPL();
+	printf("--------------------------\n");
+	printf("resultat analyse %d\n", Analyse(A[5]));
+	
 	return 0;
 }

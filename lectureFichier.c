@@ -2,9 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-char *nomfic = "gram";
 
-char ** lectureFichier(){
+char ** lectureFichier(char* nomfic){
 	FILE *stream;
 	char str[32];
 	char **text;
