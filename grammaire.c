@@ -1,5 +1,5 @@
 #include "lectureFichier.c"
-// TODO codeGPL() qui va chercher dans les dicos
+// TODO codeGPL() (qui va chercher dans les dicos -> pas ici, analyse ?)
 // TODO AnalyseGPL() qui analyse en utilisant les fonctions GPL
 // TODO GPL_action()
 
@@ -7,6 +7,7 @@
 //TYPES--------------------------------
 typedef enum { TERMINAL, NONTERMINAL } AtomType;
 typedef enum { IDNTER, ELTER, OPERATION } Code;
+typedef enum { ENT, IDENT, SYMBOLE } CodeGPL;
 
 typedef struct nodeType {
   struct nodeType *left;
@@ -27,10 +28,10 @@ typedef struct Dicos {
   Dico *dicoT;
 } Dicos;
 
-typedef struct gplType {
-  char **gpl;
+typedef struct g0Type {
+  char **g0;
   int ind;
-} gplType;
+} g0Type;
 
 typedef struct Pile {
   nodeType **elem; // tableau d'éléments
@@ -47,7 +48,8 @@ typedef struct TableDesSymboles {
 nodeType **A;
 int tailleForet = 5;
 // TODO size
-gplType gpl;
+g0Type g0;
+g0Type gpl;
 Dicos *dicos;
 Pile *pile;
 TableDesSymboles *tableDesSymboles;
@@ -201,34 +203,61 @@ void ImprimArbre(nodeType *p1) { ImprimArbreRec(p1, 0); }
 //--------------------------------FONCTIONS DU
 //SCANNER--------------------------------
 
-void scan() { (gpl.ind)++; }
+void scan() { (g0.ind)++; }
+void scanGPL() { (gpl.ind)++; }
 void init_scan() {
-  gpl.gpl = lectureFichier("gram");
-  gpl.ind = 0;
+  g0.g0 = lectureFichier("gram");
+  g0.ind = 0;
 }
 void init_scanGPL() {
-  gpl.gpl = lectureFichier("program");
+  gpl.g0 = lectureFichier("program");
   gpl.ind = 0;
 }
-char *val_scan() { return gpl.gpl[gpl.ind]; }
+char *val_scan() { 
+	if(g0.g0[g0.ind][0] == '#')
+		scan();
+	return g0.g0[g0.ind]; 
+}
+
 int action_scan() {
+ printf("deb actionscan %s\n",g0.g0[g0.ind + 1]);
   if (strcmp(val_scan(), ";") == 0) {
     return 0;
-  } else if (gpl.gpl[gpl.ind + 1][0] == '#') {
+  } else if (g0.g0[g0.ind + 1][0] == '#') {
     char *action_str;
     action_str = malloc(4 * sizeof(char));
-    strcpy(action_str, gpl.gpl[gpl.ind + 1] + 1); // on eleve le #
+    strcpy(action_str, g0.g0[g0.ind + 1] + 1); // on eleve le #
     // strcpy(action_str, action_str +1);
+    printf("action scannée %s\n", action_str);
     return atoi(action_str);
   } else {
     return 0;
   }
 }
+char *val_scanGPL() { 
+	return gpl.g0[gpl.ind]; 
+}
+
+int action_scanGPL() {
+  if (strcmp(val_scan(), ";") == 0) {
+    return 0;
+  } else if (gpl.g0[gpl.ind + 1][0] == '#') {
+    char *action_str;
+    action_str = malloc(4 * sizeof(char));
+    strcpy(action_str, gpl.g0[gpl.ind + 1] + 1); // on eleve le #
+    // strcpy(action_str, action_str +1);
+    scanGPL();
+    return atoi(action_str);
+  } else {
+    return 0;
+  }
+}
+
 void afficher_scan() {
   // init_scan();
-  while (gpl.ind < 15) {
+  while (g0.ind < 15) {
     printf("fct affichage scan : %s\n", val_scan());
-    gpl.ind++;
+    g0.ind++;
   }
 }
 
@@ -245,6 +274,15 @@ Code code() {
     return OPERATION;
   }
   return IDNTER;
+}
+CodeGPL codeGPL() {
+  char *val = val_scan();
+  if (val[0] >= '0'&& val[0] <= '9') {
+    return ENT;
+  } else if (val[0] >= 'A'&& val[0] <= 'z'){
+    return IDENT;
+  }
+  return SYMBOLE;
 }
 //----------------------------FONCTIONS DE LA TABLE DES
 //SYMBOLES--------------------------------

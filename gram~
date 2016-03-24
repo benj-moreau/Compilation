@@ -1,1 +1,1 @@
-X -> [ 'a' ] + 'b' , ;
+Decl-Const -> 'Const' . 'ident'#1 . '=' . 'Ent' . ';' , ;
