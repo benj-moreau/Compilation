@@ -135,22 +135,51 @@ void interpreter(int instr){
 		c0++;
     }break;
 	case RD:{
+		int *entier;
+		spx++;
+		pilex[spx] = scanf("%d", entier); //TODO verifier si ca marche j'ai fait ca vite fait mal fait
+		c0++;
     }break;
 	case RDLN:{
+		int *entier;
+		spx++;
+		pilex[spx] = scanf("%d", entier); //TODO verifier si ca marche j'ai fait ca vite fait mal fait
+		printf("\n");
+		c0++;
     }break;
 	case WRT:{
+		printf("%d", pilex[spx]);
+		spx++;
+		c0++;
     }break;
 	case WRTLN:{
+		printf("%d\n", pilex[spx]);
+		spx++;
+		c0++;
     }break;
 	case ADD:{
+		spx--;
+		pilex[spx] += pilex[spx+1];
+		c0++;
     }break;
 	case MOINS:{
+		spx--;
+		pilex[spx] -= pilex[spx+1]; //TODO a savoir si on fait 1-2 ou 2-1 pareil pour DIV
+		c0++;
     }break;
 	case DIV:{
+		spx--;
+		pilex[spx] /= pilex[spx+1]; //TODO
+		c0++;
+    }break;
+    case MULT:{
+    	spx--;
+		pilex[spx] *= pilex[spx+1];
+		c0++;
     }break;
 	case NEG:{
-    }break;
-	case MULT:{
+		pilex[spx] = -pilex[spx];
+		c0++;
     }break;
 	case INC:{
     }break;
