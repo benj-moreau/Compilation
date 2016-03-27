@@ -228,7 +228,6 @@ int action_scan() {
     action_str = malloc(4 * sizeof(char));
     strcpy(action_str, g0.g0[g0.ind + 1] + 1); // on eleve le #
     // strcpy(action_str, action_str +1);
-    scan();
     printf("action scannée %s\n", action_str);
     return atoi(action_str);
   } else {
@@ -538,12 +537,18 @@ int main() {
   init_pile_table();
   init_scan();
   A = genForet();
+  ImprimArbre(A[0]);
+	ImprimArbre(A[1]);
+	ImprimArbre(A[2]);
+	ImprimArbre(A[3]);
+	ImprimArbre(A[4]);
+	/*
   printf("resultat analyse %d\n", Analyse(A[0]));
   ImprimArbre(A[5]);
   ImprimArbre(A[tailleForet - 1]);
   init_scanGPL();
   printf("--------------------------\n");
   printf("resultat analyse %d\n", Analyse(A[5]));
-
+	*/
   return 0;
 }

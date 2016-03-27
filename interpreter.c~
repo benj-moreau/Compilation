@@ -230,11 +230,9 @@ void exec(){
 
 int main() {
 	init();
-
 	//comme si GPL_action marchait :
 	pcode[0] = RD;
 	pcode[1] = STOP;
-
 	exec();
 	return 0;
 }

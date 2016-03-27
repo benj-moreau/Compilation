@@ -537,12 +537,20 @@ int main() {
   init_pile_table();
   init_scan();
   A = genForet();
+	// imprim foret
+	/*
+  ImprimArbre(A[0]);
+	ImprimArbre(A[1]);
+	ImprimArbre(A[2]);
+	ImprimArbre(A[3]);
+	ImprimArbre(A[4]);
+	*/
+	//
   printf("resultat analyse %d\n", Analyse(A[0]));
   ImprimArbre(A[5]);
   ImprimArbre(A[tailleForet - 1]);
   init_scanGPL();
   printf("--------------------------\n");
   printf("resultat analyse %d\n", Analyse(A[5]));
-
   return 0;
 }
