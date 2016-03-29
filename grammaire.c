@@ -1,13 +1,13 @@
 #include "lectureFichier.c"
+#include "interpreter.c"
 // TODO codeGPL() (qui va chercher dans les dicos -> pas ici, analyse ?)
 // TODO AnalyseGPL() qui analyse en utilisant les fonctions GPL
 // TODO GPL_action()
 
 //--------------------------------DEFINITION DES
-//TYPES--------------------------------
+// TYPES--------------------------------
 typedef enum { TERMINAL, NONTERMINAL } AtomType;
-typedef enum { IDNTER, ELTER, OPERATION } Code;
-typedef enum { ENT, IDENT, SYMBOLE } CodeGPL;
+typedef enum { IDNTER, ELTER, OPERATION, ENT, IDENT, SYMBOLE } Code;
 
 typedef struct nodeType {
   struct nodeType *left;
@@ -43,8 +43,10 @@ typedef struct TableDesSymboles {
   int size;
 } TableDesSymboles;
 
+int recherche_simple(Dico *dico, AtomType type, char *scan);
+
 //--------------------------------VARIABLES
-//GLOBALES--------------------------------
+// GLOBALES--------------------------------
 nodeType **A;
 int tailleForet = 5;
 // TODO size
@@ -55,7 +57,7 @@ Pile *pile;
 TableDesSymboles *tableDesSymboles;
 
 //--------------------------------FONCTIONS DE BASES
-//GRAMMAIRE--------------------------------
+// GRAMMAIRE--------------------------------
 nodeType *genConc(nodeType *p1, nodeType *p2) {
   nodeType *node;
   node = malloc(sizeof(nodeType));
@@ -133,6 +135,35 @@ nodeType *genAtom(char name[], int action, AtomType atomeT) {
   return (node);
 }
 
+nodeType *genAtomGPL(char name[], int action, AtomType atomeT) {
+  nodeType *node;
+  node = malloc(sizeof(nodeType));
+  node->right = NULL;
+  node->action = action;
+  node->aType = atomeT;
+  if (atomeT == NONTERMINAL) {
+      int ind = nameToIndexGPL(name);
+      if (ind != -1) {
+        node->left = A[nameToIndexGPL(name)];
+      } else {
+        printf("erreur du type de NONTERMINAL de %s\n", name);
+      }
+    strcpy(node->name, name);
+    node->code = SYMBOLE;
+  } else {
+  	if(recherche_simple(dicos->dicoNT, TERMINAL, name)){
+  		node->code = IDENT;
+  	}else if(name[0] >= '0' && name[0] <= '9'){
+  	  node->code = ENT;
+  	}else{
+  		node->code = SYMBOLE;
+  	}
+		node->left = NULL;
+    strcpy(node->name, name);
+  }
+  return (node);
+}
+
 nodeType **genForet() {
   A = (nodeType **)malloc(50 * sizeof(nodeType *));
   // S
@@ -201,10 +232,10 @@ void ImprimArbreRec(nodeType *p1, int prof) {
 void ImprimArbre(nodeType *p1) { ImprimArbreRec(p1, 0); }
 
 //--------------------------------FONCTIONS DU
-//SCANNER--------------------------------
+// SCANNER--------------------------------
 
 void scan() { (g0.ind)++; }
-void scanGPL() { (gpl.ind)++; }
+void scan_GPL() { (gpl.ind)++; }
 void init_scan() {
   g0.g0 = lectureFichier("gram");
   g0.ind = 0;
@@ -213,14 +244,16 @@ void init_scanGPL() {
   gpl.g0 = lectureFichier("program");
   gpl.ind = 0;
 }
-char *val_scan() { 
-	if(g0.g0[g0.ind][0] == '#')
-		scan();
-	return g0.g0[g0.ind]; 
+char *val_scan() {
+  if (g0.g0[g0.ind][0] == '#')
+    scan();
+  return g0.g0[g0.ind];
 }
 
+char *val_scanGPL() { return gpl.g0[gpl.ind]; }
+
 int action_scan() {
- printf("deb actionscan %s\n",g0.g0[g0.ind + 1]);
+  printf("deb actionscan %s\n", g0.g0[g0.ind + 1]);
   if (strcmp(val_scan(), ";") == 0) {
     return 0;
   } else if (g0.g0[g0.ind + 1][0] == '#') {
@@ -234,9 +267,7 @@ int action_scan() {
     return 0;
   }
 }
-char *val_scanGPL() { 
-	return gpl.g0[gpl.ind]; 
-}
+
 
 int action_scanGPL() {
   if (strcmp(val_scan(), ";") == 0) {
@@ -246,7 +277,7 @@ int action_scanGPL() {
     action_str = malloc(4 * sizeof(char));
     strcpy(action_str, gpl.g0[gpl.ind + 1] + 1); // on eleve le #
     // strcpy(action_str, action_str +1);
-    scanGPL();
+    scan_GPL();
     return atoi(action_str);
   } else {
     return 0;
@@ -275,17 +306,20 @@ Code code() {
   }
   return IDNTER;
 }
-CodeGPL codeGPL() {
-  char *val = val_scan();
-  if (val[0] >= '0'&& val[0] <= '9') {
+Code codeGPL() {
+  char *val = val_scanGPL();
+  if (val[0] >= '0' && val[0] <= '9') {
     return ENT;
-  } else if (val[0] >= 'A'&& val[0] <= 'z'){
+  } else if (val[0] >= 'A' && val[0] <= 'z') {
+  	if(recherche_simple(dicos->dicoT, TERMINAL, val) || recherche_simple(dicos->dicoNT, NONTERMINAL, val)){
+  		return SYMBOLE;
+  	}
     return IDENT;
   }
   return SYMBOLE;
 }
 //----------------------------FONCTIONS DE LA TABLE DES
-//SYMBOLES--------------------------------
+// SYMBOLES--------------------------------
 
 void init_dicos() {
   dicos = malloc(2 * sizeof(Dico *));
@@ -304,12 +338,14 @@ void ajout_symbole(char *symb, AtomType type) {
   case TERMINAL:
     strcpy(copie, symb);
     symb = strtok(copie, "\'");
-    dicos->dicoT->tab[dicos->dicoT->taille] = symb;
+    dicos->dicoT->tab[dicos->dicoT->taille] = malloc(20 * sizeof(char));
+    strcpy(dicos->dicoT->tab[dicos->dicoT->taille], symb);
     dicos->dicoT->taille++;
     printf("Ajout symbole %s terminal effectué !\n", symb);
     break;
   case NONTERMINAL:
-    dicos->dicoNT->tab[dicos->dicoNT->taille] = symb;
+  	dicos->dicoNT->tab[dicos->dicoNT->taille] = malloc(20 * sizeof(char));
+  	strcpy(dicos->dicoNT->tab[dicos->dicoNT->taille], symb);
     dicos->dicoNT->taille++;
     printf("Ajout symbole non-terminal effectué !\n");
     break;
@@ -350,6 +386,37 @@ char *recherche(Dico *dico, AtomType type, char *scan) {
   }
   printf("symbole : %s\n", scan);
   return scan;
+}
+
+int recherche_simple(Dico *dico, AtomType type, char *scan) {
+  char *symb;
+  int bool_trouve = 0;
+  int i;
+	printf("recherche de : %s\n", scan);
+  if (type == TERMINAL) {
+    printf("recherche if\n");
+    for (i = 0; i < dicos->dicoT->taille; i++) {
+      symb = dicos->dicoT->tab[i];
+      printf("elem --- : %s\n", symb);
+      if (strcmp(scan, symb) == 0) {
+        bool_trouve = 1;
+        break;
+      }
+    }
+  } else {
+    printf("recherche else\n");
+    printf("dicotaille : %d\n", dicos->dicoNT->taille);
+    for (i = 0; i < dicos->dicoNT->taille; i++) {
+      symb = dicos->dicoNT->tab[i];
+      printf("elem --- : %s\n", symb);
+      if (strcmp(scan, symb) == 0) {
+        bool_trouve = 1;
+        break;
+      }
+    }
+  }
+  printf("trouve ? : %d\n", bool_trouve);
+  return bool_trouve;
 }
 
 void init_pile_table() {
@@ -393,7 +460,7 @@ void addToSymboles(char *name) {
 }
 
 //----------------------------FONCTIONS
-//D'ANALYSE--------------------------------
+// D'ANALYSE--------------------------------
 
 void action(int act) {
   printf("action : %d\n", act);
@@ -413,7 +480,7 @@ void action(int act) {
     printf(">%d\n", action_scan());
     // TODO segfault ici !!!!!!!!!!!! c'est empiler !!!!
     // empiler(genAtom("if",10,NONTERMINAL));
-    empiler(genAtom(recherche(dicos->dicoNT, NONTERMINAL, val_scan()),
+    empiler(genAtomGPL(recherche(dicos->dicoNT, NONTERMINAL, val_scan()),
                     action_scan(), NONTERMINAL));
     printf("empiler ok\n");
     break;
@@ -433,7 +500,7 @@ void action(int act) {
     printf("//////action 5 : %s\n", val_scan());
     printf("action scan\n");
     printf(">%d\n", action_scan());
-    empiler(genAtom(recherche(dicos->dicoT, TERMINAL, val_scan()),
+    empiler(genAtomGPL(recherche(dicos->dicoT, TERMINAL, val_scan()),
                     action_scan(), TERMINAL));
     break;
   case 6: //-----------genStar
@@ -451,6 +518,18 @@ void action(int act) {
     break;
   }
 }
+
+void actionGPL(int act) {
+  switch (act) {
+  case 1: //-----------nouvelle case tab
+    
+    break;
+  default:
+    printf("erreur action numéro %d", act);
+    break;
+  }
+}
+
 int nameToIndex(char *name) {
   if (strcmp(name, "S") == 0) {
     return 0;
@@ -469,30 +548,30 @@ int nameToIndex(char *name) {
   }
 }
 
-int Analyse(nodeType *p1) {
+int AnalyseG0(nodeType *p1) {
 
   char nodeName[15];
   strcpy(nodeName, p1->name);
   int boolAnalyse = 1;
   printf("---p1->name : %s\n", nodeName);
   if (strcmp(nodeName, "conc") == 0) {
-    if (Analyse(p1->left) == 1) {
-      return Analyse(p1->right);
+    if (AnalyseG0(p1->left) == 1) {
+      return AnalyseG0(p1->right);
     } else {
       return 0;
     }
   } else if (strcmp(nodeName, "union") == 0) {
-    if (Analyse(p1->left) == 1) {
+    if (AnalyseG0(p1->left) == 1) {
       return 1;
     } else {
-      return Analyse(p1->right);
+      return AnalyseG0(p1->right);
     }
   } else if (strcmp(nodeName, "star") == 0) {
-    while (Analyse(p1->left) == 1) {
+    while (AnalyseG0(p1->left) == 1) {
     }
     return 1;
   } else if (strcmp(nodeName, "un") == 0) {
-    return Analyse(p1->left);
+    return AnalyseG0(p1->left);
   } else { // atome
     if (p1->aType == TERMINAL) {
       printf("****val scan : %s\n", val_scan());
@@ -520,9 +599,73 @@ int Analyse(nodeType *p1) {
         return 0;
       }
     } else if (p1->aType == NONTERMINAL &&
-               Analyse(A[nameToIndex(p1->name)]) == 1) {
+               AnalyseG0(A[nameToIndex(p1->name)]) == 1) {
       if (p1->action != 0) {
         action(p1->action);
+      }
+      return 1;
+    } else {
+      return 0;
+    }
+  }
+  return 0; // normalement on ne passe pas la
+}
+
+int AnalyseGPL(nodeType *p1) {
+
+  char nodeName[15];
+  strcpy(nodeName, p1->name);
+  int boolAnalyse = 1;
+  printf("---p1->name : %s\n", nodeName);
+  if (strcmp(nodeName, "conc") == 0) {
+    if (AnalyseGPL(p1->left) == 1) {
+      return AnalyseGPL(p1->right);
+    } else {
+      return 0;
+    }
+  } else if (strcmp(nodeName, "union") == 0) {
+    if (AnalyseGPL(p1->left) == 1) {
+      return 1;
+    } else {
+      return AnalyseGPL(p1->right);
+    }
+  } else if (strcmp(nodeName, "star") == 0) {
+    while (AnalyseGPL(p1->left) == 1) {
+    }
+    return 1;
+  } else if (strcmp(nodeName, "un") == 0) {
+    return AnalyseGPL(p1->left);
+  } else { // atome
+    if (p1->aType == TERMINAL) {
+      printf("****val scan : %s\n", val_scanGPL());
+      printf("%d\n", p1->code);
+      printf("%d\n",codeGPL());
+      if (p1->code == codeGPL()) {
+        if (p1->action != 0) {
+          actionGPL(p1->action);
+        }
+        if (codeGPL() == OPERATION) {
+          if (strcmp(p1->name, val_scanGPL()) == 0) {
+            printf("scan+1\n");
+            scan_GPL();
+            return 1;
+          } else {
+            return 0;
+          }
+
+        } else {
+          printf("scan+1\n");
+          scan_GPL();
+          return 1;
+        }
+
+      } else {
+        return 0;
+      }
+    } else if (p1->aType == NONTERMINAL &&
+               AnalyseGPL(A[nameToIndex(p1->name)]) == 1) {
+      if (p1->action != 0) {
+        actionGPL(p1->action);
       }
       return 1;
     } else {
@@ -536,21 +679,87 @@ int main() {
   init_dicos();
   init_pile_table();
   init_scan();
+  
   A = genForet();
-	// imprim foret
-	/*
-  ImprimArbre(A[0]);
-	ImprimArbre(A[1]);
-	ImprimArbre(A[2]);
-	ImprimArbre(A[3]);
-	ImprimArbre(A[4]);
-	*/
-	//
-  printf("resultat analyse %d\n", Analyse(A[0]));
-  ImprimArbre(A[5]);
-  ImprimArbre(A[tailleForet - 1]);
+  {// imprim foret G0
+  	printf("-------- *********************** ---------\n");
+  	printf("-------- Affichage foret G0 ---------\n");
+  	printf("-------- *********************** ---------\n");
+		ImprimArbre(A[1]);
+		ImprimArbre(A[2]);
+		ImprimArbre(A[3]);
+		ImprimArbre(A[4]);
+  }
+
+  printf("-------- *********************** ---------\nresultat analyse G0 : %d\n", AnalyseG0(A[0]));
+  printf("-------- *********************** ---------\n\n");
+  {//imprim foret GPL
+		int i;
+  	printf("-------- *********************** ---------\n");
+  	printf("-------- Affichage foret GPL ---------\n");
+  	printf("-------- *********************** ---------\n");
+		for(i=5 ; i<tailleForet ; i++){
+			ImprimArbre(A[i]);
+		}
+  }
+  
   init_scanGPL();
-  printf("--------------------------\n");
-  printf("resultat analyse %d\n", Analyse(A[5]));
+  //printf("resultat analyse GPL %d\n", AnalyseGPL(A[5]));
+  
+  init_interpreter();
+  spx = 2;//3 variables
+  
+  //I=0;
+  pcode[0] = LDA;
+  pcode[1] = 0;
+  pcode[2] = LDC;
+  pcode[3] = 0;
+  pcode[4] = AFF;
+  //S=0;
+  pcode[5] = LDA;
+  pcode[6] = 1;
+  pcode[7] = LDC;
+  pcode[8] = 0;
+  pcode[9] = AFF;
+  //N=read();
+  pcode[10] = LDA;
+  pcode[11] = 2;
+  pcode[12] = RDLN;
+  pcode[13] = AFF;
+  //while(I<=N){
+  pcode[14] = LDV;
+  pcode[15] = 0;
+  pcode[16] = LDV;
+  pcode[17] = 2;
+  pcode[18] = INFE;
+  pcode[19] = JIF;
+  pcode[20] = 37;
+  //S=S+I;
+  pcode[21] = LDA;
+  pcode[22] = 1;
+  pcode[23] = LDV;
+  pcode[24] = 1;
+  pcode[25] = LDV;
+  pcode[26] = 0;
+  pcode[27] = ADD;
+  pcode[28] = AFF;
+  //I++;
+  pcode[29] = LDA;
+  pcode[30] = 0;
+  pcode[31] = LDV;
+  pcode[32] = 0;
+  pcode[33] = INC;
+  pcode[34] = AFF;
+  
+  //}
+  pcode[35] = JMP;
+  pcode[36] = 14;
+  //writeln(S);
+  pcode[37] = LDV;
+  pcode[38] = 1;
+  pcode[39] = WRTLN;
+  pcode[40] = STOP;
+  
+  exec();
   return 0;
 }
