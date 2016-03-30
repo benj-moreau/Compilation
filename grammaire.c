@@ -151,9 +151,9 @@ nodeType *genAtomGPL(char name[], int action, AtomType atomeT) {
     strcpy(node->name, name);
     node->code = SYMBOLE;
   } else {
-  	if(recherche_simple(dicos->dicoNT, TERMINAL, name)){
+  	if(recherche_simple(dicos->dicoNT, TERMINAL, name) || strcmp(name,"'ident'")==0){
   		node->code = IDENT;
-  	}else if(name[0] >= '0' && name[0] <= '9'){
+  	}else if((name[0] >= '0' && name[0] <= '9') || (strcmp(name,"'Ent'")==0)){
   	  node->code = ENT;
   	}else{
   		node->code = SYMBOLE;
@@ -362,7 +362,6 @@ char *recherche(Dico *dico, AtomType type, char *scan) {
   int i;
 
   if (type == TERMINAL) {
-    printf("recherche if\n");
     for (i = 0; i < dicos->dicoT->taille; i++) {
       symb = dicos->dicoT->tab[i];
       if (strcmp(scan, symb) == 0) {
@@ -371,8 +370,6 @@ char *recherche(Dico *dico, AtomType type, char *scan) {
       }
     }
   } else {
-    printf("recherche else\n");
-    printf("dicotaille : %d\n", dicos->dicoNT->taille);
     for (i = 0; i < dicos->dicoNT->taille; i++) {
       symb = dicos->dicoNT->tab[i];
       if (strcmp(scan, symb) == 0) {
@@ -384,7 +381,6 @@ char *recherche(Dico *dico, AtomType type, char *scan) {
   if (bool_trouve == 0) {
     ajout_symbole(scan, type);
   }
-  printf("symbole : %s\n", scan);
   return scan;
 }
 
@@ -392,30 +388,23 @@ int recherche_simple(Dico *dico, AtomType type, char *scan) {
   char *symb;
   int bool_trouve = 0;
   int i;
-	printf("recherche de : %s\n", scan);
   if (type == TERMINAL) {
-    printf("recherche if\n");
     for (i = 0; i < dicos->dicoT->taille; i++) {
       symb = dicos->dicoT->tab[i];
-      printf("elem --- : %s\n", symb);
       if (strcmp(scan, symb) == 0) {
         bool_trouve = 1;
         break;
       }
     }
   } else {
-    printf("recherche else\n");
-    printf("dicotaille : %d\n", dicos->dicoNT->taille);
     for (i = 0; i < dicos->dicoNT->taille; i++) {
       symb = dicos->dicoNT->tab[i];
-      printf("elem --- : %s\n", symb);
       if (strcmp(scan, symb) == 0) {
         bool_trouve = 1;
         break;
       }
     }
   }
-  printf("trouve ? : %d\n", bool_trouve);
   return bool_trouve;
 }
 
@@ -521,11 +510,24 @@ void action(int act) {
 
 void actionGPL(int act) {
   switch (act) {
-  case 1: //-----------nouvelle case tab
-    
+  case 1:
+    pcode[c0] = LDA;
+    c0++;
+		pcode[c0] = spx;
+		spx++;
+		c0++;
     break;
+	case 2:
+    pcode[c0] = LDC;
+		c0++;
+		printf("val %d\n", atoi(val_scanGPL()));
+		pcode[c0] = atoi(val_scanGPL());
+		c0++;
+		pcode[c0] = AFF;
+		c0++;
+  	break;
   default:
-    printf("erreur action numéro %d", act);
+    printf("erreur action numéro %d\n", act);
     break;
   }
 }
@@ -641,24 +643,13 @@ int AnalyseGPL(nodeType *p1) {
       printf("%d\n", p1->code);
       printf("%d\n",codeGPL());
       if (p1->code == codeGPL()) {
+	printf("action %d\n",p1->action);
         if (p1->action != 0) {
           actionGPL(p1->action);
         }
-        if (codeGPL() == OPERATION) {
-          if (strcmp(p1->name, val_scanGPL()) == 0) {
-            printf("scan+1\n");
-            scan_GPL();
-            return 1;
-          } else {
-            return 0;
-          }
-
-        } else {
           printf("scan+1\n");
           scan_GPL();
           return 1;
-        }
-
       } else {
         return 0;
       }
@@ -685,6 +676,7 @@ int main() {
   	printf("-------- *********************** ---------\n");
   	printf("-------- Affichage foret G0 ---------\n");
   	printf("-------- *********************** ---------\n");
+		ImprimArbre(A[0]);
 		ImprimArbre(A[1]);
 		ImprimArbre(A[2]);
 		ImprimArbre(A[3]);
@@ -703,10 +695,25 @@ int main() {
 		}
   }
   
+	init_interpreter();
   init_scanGPL();
-  //printf("resultat analyse GPL %d\n", AnalyseGPL(A[5]));
+  printf("-------- *********************** ---------\nresultat analyse GPL : %d\n", AnalyseGPL(A[5]));
+	printf("-------- *********************** ---------\n\n");
+	
+	printf("S = ");
+	//on affiche la valeur de S avec du PCODE
+	pcode[c0] = LDV;
+	c0++;
+  pcode[c0] = 0;
+	c0++;
+  pcode[c0] = WRTLN;
+	c0++;
+	pcode[c0] = STOP;
+	c0++;
+	c0=0;
+	exec();
   
-  init_interpreter();
+  /* test interpreter
   spx = 2;//3 variables
   
   //I=0;
@@ -761,5 +768,7 @@ int main() {
   pcode[40] = STOP;
   
   exec();
+	*/
+
   return 0;
 }
