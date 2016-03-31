@@ -1,1 +1,0 @@
-Decl-Const -> 'Const' . 'ident' #1 . '=' . 'Ent' #2 . [ ';' . 'ident' #1 . 'Ent' #2 ] . ';' , ;

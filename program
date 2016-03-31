@@ -1,1 +1,2 @@
 Const x = 12 ;
+write x ;

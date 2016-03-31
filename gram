@@ -1,1 +1,5 @@
-Decl-Const -> 'Const' . 'ident' #1 . '=' . 'Ent' #2 . ';' , ;
+Program -> Decl-Const . Write ,
+Decl-Const -> 'Const' . 'ident' #1 . '=' . 'Ent' #2 . ';' , 
+Write -> 'write' . 'ident' #3 . ';' , ;
+
+
