@@ -511,14 +511,14 @@ void action(int act) {
 void actionGPL(int act) {
   switch (act) {
   case 1:
-    pcode[c0] = LDA;
-    c0++;
+    	pcode[c0] = LDA;
+    	c0++;
 		pcode[c0] = spx;
 		spx++;
 		c0++;
     break;
 	case 2:
-    pcode[c0] = LDC;
+    	pcode[c0] = LDC;
 		c0++;
 		printf("val %d\n", atoi(val_scanGPL()));
 		pcode[c0] = atoi(val_scanGPL());
@@ -643,15 +643,23 @@ int AnalyseGPL(nodeType *p1) {
       printf("%d\n", p1->code);
       printf("%d\n",codeGPL());
       if (p1->code == codeGPL()) {
-	printf("action %d\n",p1->action);
+		printf("action %d\n",p1->action);
         if (p1->action != 0) {
           actionGPL(p1->action);
         }
+        	char copie[50] = "\'";
+        	strcat(copie,val_scanGPL());
+        	strcat(copie,"\'");
+         if (strcmp(p1->name, copie) == 0 || strcmp(p1->name, "\'ident\'") == 0 ||
+         strcmp(p1->name, "\'Ent\'") == 0) {
           printf("scan+1\n");
           scan_GPL();
+          
           return 1;
+          
       } else {
         return 0;
+      }
       }
     } else if (p1->aType == NONTERMINAL &&
                AnalyseGPL(A[nameToIndex(p1->name)]) == 1) {
